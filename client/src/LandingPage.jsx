@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react";
 import {
   Code2,
   Timer,
@@ -14,50 +14,77 @@ import {
   Server,
   Globe,
   Cpu,
-} from "lucide-react"
-import { Link } from "react-router-dom"
-import axios from "axios"
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { UserDataContext } from "./context/UserContext";
 
 // Simple Button component to replace the shadcn Button
 const Button = ({ children, className, variant }) => {
   const baseClasses =
-    "inline-flex h-10 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+    "inline-flex h-10 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
 
   const variantClasses =
     variant === "outline"
       ? "border border-input bg-background hover:bg-accent hover:text-accent-foreground"
-      : "bg-primary text-primary-foreground shadow hover:bg-primary/90"
+      : "bg-primary text-primary-foreground shadow hover:bg-primary/90";
 
-  return <button className={`${baseClasses} ${variantClasses} ${className}`}>{children}</button>
-}
+  return (
+    <button className={`${baseClasses} ${variantClasses} ${className}`}>
+      {children}
+    </button>
+  );
+};
 
 // Simple animation component to replace framer-motion
 const FadeIn = ({ children, delay = 0, className }) => {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, delay * 1000)
+      setIsVisible(true);
+    }, delay * 1000);
 
-    return () => clearTimeout(timer)
-  }, [delay])
+    return () => clearTimeout(timer);
+  }, [delay]);
 
   return (
     <div
-      className={`transition-all duration-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"} ${className}`}
+      className={`transition-all duration-500 ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      } ${className}`}
     >
       {children}
     </div>
-  )
-}
+  );
+};
 
 export default function LandingPage() {
-  const [isVisible, setIsVisible] = useState(false)
+  const { user, setUser } = useContext(UserDataContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const token = localStorage.getItem("token");
+
+  const handleLogout = async () => {
+    try {
+      await axios.get(`${import.meta.env.VITE_BASE_URL}/users/logout`, { withCredentials: true });
+      localStorage.removeItem("token");
+      setUser({
+        email: "",
+        fullname: {
+          firstname: "",
+          lastname: "",
+        },
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    setIsVisible(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -70,27 +97,81 @@ export default function LandingPage() {
           </h1>
         </div>
         <nav className="hidden md:flex gap-8 font-bold text-lg">
-          <a href="#features" className="text-gray-300 hover:text-purple-400 transition-colors">
+          <a
+            href="#features"
+            className="text-gray-300 hover:text-purple-400 transition-colors"
+          >
             Features
           </a>
-          <a href="#tech" className="text-gray-300 hover:text-purple-400 transition-colors">
+          <a
+            href="#tech"
+            className="text-gray-300 hover:text-purple-400 transition-colors"
+          >
             Tech Stack
           </a>
-          <a href="#testimonials" className="text-gray-300 hover:text-purple-400 transition-colors">
+          <a
+            href="#testimonials"
+            className="text-gray-300 hover:text-purple-400 transition-colors"
+          >
             Testimonials
           </a>
-          <a href="#leaderboard" className="text-gray-300 hover:text-purple-400 transition-colors">
+          <a
+            href="#leaderboard"
+            className="text-gray-300 hover:text-purple-400 transition-colors"
+          >
             Leaderboard
           </a>
         </nav>
-        <div className="flex gap-3">
-            <Link to={'/login'} className="pb-2 cursor-pointer pt-2 font-bold pl-4 pr-4 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none">
-            Sign In
-            </Link>
-            <Link to={'/register'} className="cursor-pointer pt-2 font-bold pl-4 pr-4 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none">
-            Sign up
-            </Link>
-            
+        <div className="flex gap-3 relative">
+          {token ? (
+            <div
+              className="relative"
+              onMouseEnter={() => setDropdownOpen(true)}
+              onMouseLeave={() => setTimeout(() => setDropdownOpen(false), 1000)}
+            >
+              <div className="w-10 h-10 rounded-full bg-black border border-white flex items-center justify-center cursor-pointer">
+                {user.fullname.firstname
+                  ? user.fullname.firstname.charAt(0).toUpperCase()
+                  : "U"}
+              </div>
+              
+              {dropdownOpen && (
+                
+                <div className="absolute right-0 mt-2 w-40 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10">
+                  <div className="ml-2 font-bold">
+                  {user.fullname.firstname + ' ' + user.fullname.lastname || "User"}
+                  </div>
+                  <Link
+                    to={"/login"}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-700"
+                  >
+                    View Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-700"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link
+                to={"/login"}
+                className="pb-2 cursor-pointer pt-2 font-bold pl-4 pr-4 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none"
+              >
+                Sign In
+              </Link>
+              <Link
+                to={"/register"}
+                className="cursor-pointer pt-2 font-bold pl-4 pr-4 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -100,17 +181,25 @@ export default function LandingPage() {
           <div>
             <FadeIn>
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Real-time <span className="text-blue-500">Coding</span> Battles for{" "}
-                <span className="text-purple-500">Developers</span>
+                Real-time <span className="text-blue-500">Coding</span> Battles
+                for <span className="text-purple-500">Developers</span>
               </h1>
               <p className="text-xl text-gray-300 mb-8">
-                Challenge your friends or random opponents to head-to-head coding competitions. Solve DSA problems
-                faster than your opponent and climb the leaderboard.
+                Challenge your friends or random opponents to head-to-head
+                coding competitions. Solve DSA problems faster than your
+                opponent and climb the leaderboard.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">Create Room</Button>
-                <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">Join Match</Button>
-                <Button variant="outline" className="cursor-pointer border-blue-500 text-blue-500 hover:bg-blue-950 text-lg px-8 py-6">
+                <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
+                  Create Room
+                </Button>
+                <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
+                  Join Match
+                </Button>
+                <Button
+                  variant="outline"
+                  className="cursor-pointer border-blue-500 text-blue-500 hover:bg-blue-950 text-lg px-8 py-6"
+                >
                   Try a Demo
                 </Button>
               </div>
@@ -125,7 +214,9 @@ export default function LandingPage() {
                     <div className="w-24 h-24 mx-auto bg-blue-500/20 rounded-full mb-4 flex items-center justify-center">
                       <Code2 className="h-12 w-12 text-blue-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-blue-400">Player 1</h3>
+                    <h3 className="text-xl font-bold text-blue-400">
+                      Player 1
+                    </h3>
                     <p className="text-blue-300 text-sm">Python</p>
                   </div>
                 </div>
@@ -139,7 +230,9 @@ export default function LandingPage() {
                     <div className="w-24 h-24 mx-auto bg-purple-500/20 rounded-full mb-4 flex items-center justify-center">
                       <Code2 className="h-12 w-12 text-purple-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-purple-400">Player 2</h3>
+                    <h3 className="text-xl font-bold text-purple-400">
+                      Player 2
+                    </h3>
                     <p className="text-purple-300 text-sm">JavaScript</p>
                   </div>
                 </div>
@@ -188,9 +281,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                 <Code2 className="h-6 w-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Real-Time Code Execution</h3>
+              <h3 className="text-xl font-bold mb-2 text-blue-400">
+                Real-Time Code Execution
+              </h3>
               <p className="text-gray-300">
-                Execute your code in real-time using Judge0 API with support for over 40+ programming languages.
+                Execute your code in real-time using Judge0 API with support for
+                over 40+ programming languages.
               </p>
             </FadeIn>
 
@@ -201,9 +297,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
                 <Timer className="h-6 w-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-400">Live Timer</h3>
+              <h3 className="text-xl font-bold mb-2 text-purple-400">
+                Live Timer
+              </h3>
               <p className="text-gray-300">
-                Race against the clock with a live timer that adds pressure and excitement to your coding battles.
+                Race against the clock with a live timer that adds pressure and
+                excitement to your coding battles.
               </p>
             </FadeIn>
 
@@ -214,9 +313,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                 <Layers className="h-6 w-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Problem Difficulty Levels</h3>
+              <h3 className="text-xl font-bold mb-2 text-blue-400">
+                Problem Difficulty Levels
+              </h3>
               <p className="text-gray-300">
-                Choose from easy, medium, or hard problems to match your skill level and challenge yourself.
+                Choose from easy, medium, or hard problems to match your skill
+                level and challenge yourself.
               </p>
             </FadeIn>
 
@@ -227,9 +329,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
                 <Languages className="h-6 w-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-400">Multiple Language Support</h3>
+              <h3 className="text-xl font-bold mb-2 text-purple-400">
+                Multiple Language Support
+              </h3>
               <p className="text-gray-300">
-                Code in your preferred language with support for Python, JavaScript, Java, C++, and many more.
+                Code in your preferred language with support for Python,
+                JavaScript, Java, C++, and many more.
               </p>
             </FadeIn>
 
@@ -240,9 +345,12 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
                 <History className="h-6 w-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Match History</h3>
+              <h3 className="text-xl font-bold mb-2 text-blue-400">
+                Match History
+              </h3>
               <p className="text-gray-300">
-                Review your past battles, learn from your mistakes, and track your progress over time.
+                Review your past battles, learn from your mistakes, and track
+                your progress over time.
               </p>
             </FadeIn>
           </div>
@@ -254,6 +362,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
             <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+
               Powered By Modern Tech Stack
             </span>
           </h2>
@@ -312,30 +421,42 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-blue-900/30 rounded-full mr-4"></div>
                 <div>
                   <h4 className="font-bold">Alex Johnson</h4>
-                  <p className="text-sm text-gray-400">Senior Developer @ Tech Co</p>
+                  <p className="text-sm text-gray-400">
+                    Senior Developer @ Tech Co
+                  </p>
                 </div>
               </div>
               <p className="text-gray-300">
-                "Code Battle has completely changed how I practice DSA problems. The competitive aspect makes it so much
-                more engaging than solving problems alone."
+                "Code Battle has completely changed how I practice DSA problems.
+                The competitive aspect makes it so much more engaging than
+                solving problems alone."
               </p>
             </FadeIn>
 
-            <FadeIn delay={0.1} className="bg-gray-800 p-6 rounded-lg border border-purple-500/20">
+            <FadeIn
+              delay={0.1}
+              className="bg-gray-800 p-6 rounded-lg border border-purple-500/20"
+            >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-purple-900/30 rounded-full mr-4"></div>
                 <div>
                   <h4 className="font-bold">Samantha Lee</h4>
-                  <p className="text-sm text-gray-400">CS Student @ University</p>
+                  <p className="text-sm text-gray-400">
+                    CS Student @ University
+                  </p>
                 </div>
               </div>
               <p className="text-gray-300">
-                "I use Code Battle to prepare for technical interviews. The timer and competitive element simulates the
-                pressure of real interviews perfectly."
+                "I use Code Battle to prepare for technical interviews. The
+                timer and competitive element simulates the pressure of real
+                interviews perfectly."
               </p>
             </FadeIn>
 
-            <FadeIn delay={0.2} className="bg-gray-800 p-6 rounded-lg border border-blue-500/20">
+            <FadeIn
+              delay={0.2}
+              className="bg-gray-800 p-6 rounded-lg border border-blue-500/20"
+            >
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-900/30 rounded-full mr-4"></div>
                 <div>
@@ -344,8 +465,9 @@ export default function LandingPage() {
                 </div>
               </div>
               <p className="text-gray-300">
-                "My team uses Code Battle for our weekly coding challenges. It's become a fun way to improve our skills
-                while building team camaraderie."
+                "My team uses Code Battle for our weekly coding challenges. It's
+                become a fun way to improve our skills while building team
+                camaraderie."
               </p>
             </FadeIn>
           </div>
@@ -371,18 +493,52 @@ export default function LandingPage() {
             </div>
 
             {[
-              { rank: 1, name: "CodeNinja", wins: 142, battles: 167, rate: "85%" },
-              { rank: 2, name: "AlgoMaster", wins: 136, battles: 164, rate: "83%" },
-              { rank: 3, name: "ByteWarrior", wins: 129, battles: 158, rate: "82%" },
-              { rank: 4, name: "SyntaxSlayer", wins: 118, battles: 150, rate: "79%" },
-              { rank: 5, name: "DevDestroyer", wins: 112, battles: 145, rate: "77%" },
+              {
+                rank: 1,
+                name: "CodeNinja",
+                wins: 142,
+                battles: 167,
+                rate: "85%",
+              },
+              {
+                rank: 2,
+                name: "AlgoMaster",
+                wins: 136,
+                battles: 164,
+                rate: "83%",
+              },
+              {
+                rank: 3,
+                name: "ByteWarrior",
+                wins: 129,
+                battles: 158,
+                rate: "82%",
+              },
+              {
+                rank: 4,
+                name: "SyntaxSlayer",
+                wins: 118,
+                battles: 150,
+                rate: "79%",
+              },
+              {
+                rank: 5,
+                name: "DevDestroyer",
+                wins: 112,
+                battles: 145,
+                rate: "77%",
+              },
             ].map((player, index) => (
               <FadeIn
                 key={index}
                 delay={index * 0.1}
-                className={`grid grid-cols-12 p-4 ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"} hover:bg-gray-700 transition-colors`}
+                className={`grid grid-cols-12 p-4 ${
+                  index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                } hover:bg-gray-700 transition-colors`}
               >
-                <div className="col-span-1 font-bold text-gray-300">{player.rank}</div>
+                <div className="col-span-1 font-bold text-gray-300">
+                  {player.rank}
+                </div>
                 <div className="col-span-5 font-medium text-white flex items-center">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3 flex items-center justify-center text-xs">
                     {player.name.charAt(0)}
@@ -407,14 +563,24 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-900/40 to-purple-900/40">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Test Your Coding Skills?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            Ready to Test Your Coding Skills?
+          </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join thousands of developers who are improving their coding skills through competitive battles.
+            Join thousands of developers who are improving their coding skills
+            through competitive battles.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">Create Room</Button>
-            <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">Join Match</Button>
-            <Button variant="outline" className="border-blue-500 text-blue-500 hover:bg-blue-950 text-lg px-8 py-6">
+            <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
+              Create Room
+            </Button>
+            <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
+              Join Match
+            </Button>
+            <Button
+              variant="outline"
+              className="border-blue-500 text-blue-500 hover:bg-blue-950 text-lg px-8 py-6"
+            >
               Try a Demo
             </Button>
           </div>
@@ -459,22 +625,34 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold mb-4">Platform</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Features
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Leaderboard
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Problem Library
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       API
                     </a>
                   </li>
@@ -485,22 +663,34 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold mb-4">Resources</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Documentation
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Tutorials
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Blog
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       FAQ
                     </a>
                   </li>
@@ -511,22 +701,34 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold mb-4">Company</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       About
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Careers
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Contact
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Press
                     </a>
                   </li>
@@ -537,22 +739,34 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold mb-4">Legal</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Terms of Service
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Privacy Policy
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Cookie Policy
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">
+                    <a
+                      href="#"
+                      className="text-gray-400 hover:text-blue-400 transition-colors"
+                    >
                       Security
                     </a>
                   </li>
@@ -561,11 +775,13 @@ export default function LandingPage() {
             </div>
 
             <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-              <p>© {new Date().getFullYear()} Code Battle. All rights reserved.</p>
+              <p>
+                © {new Date().getFullYear()} Code Battle. All rights reserved.
+              </p>
             </div>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
