@@ -3,6 +3,10 @@ import React, { useState } from "react";
 import { User, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { UserDataContext } from '../src/context/UserContext';
+import {useContext} from 'react'
+
+
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -17,6 +21,7 @@ const SignUpPage = () => {
   });
 
   const navigate = useNavigate();
+  const { user, setUser } = useContext(UserDataContext);  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,6 +36,8 @@ const SignUpPage = () => {
       console.log("registeration  successful:", data);
       const token = data.token;
       localStorage.setItem("token", token);
+      setUser(data.user);
+      console.log('user:', user);
     }
     navigate("/");
   };

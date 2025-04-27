@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserDataContext } from '../src/context/UserContext';
+import {useContext} from 'react'
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +13,7 @@ const SignInPage = () => {
   });
 
   const navigate = useNavigate();
+  const { user, setUser } = useContext(UserDataContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,6 +28,9 @@ const SignInPage = () => {
       console.log("Login successful:", data);
       const token = data.token;
       localStorage.setItem("token", token);
+      console.log(data.user);
+      setUser(data.user);
+      console.log('user:', user);
     }
 
     navigate("/");
