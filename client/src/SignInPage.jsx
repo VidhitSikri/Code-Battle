@@ -1,27 +1,39 @@
-
-import React, { useState } from 'react';
-import { User, Lock, Eye, EyeOff } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { User, Lock, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    email: "",
+    password: "",
   });
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
-    navigate('/');
+    console.log("Login attempt:", formData);
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/users/login`,
+      formData,
+      { withCredentials: true }
+    );
+    if (response.status === 200) {
+      const data = response.data;
+      console.log("Login successful:", data);
+      const token = data.token;
+      localStorage.setItem("token", token);
+    }
+
+    navigate("/");
   };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -37,7 +49,9 @@ const SignInPage = () => {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-300 to-purple-500 bg-clip-text text-transparent mb-2">
             System Access
           </h1>
-          <p className="text-blue-300/60 text-sm">Enter your credentials to proceed</p>
+          <p className="text-blue-300/60 text-sm">
+            Enter your credentials to proceed
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -46,12 +60,12 @@ const SignInPage = () => {
               <User className="h-5 w-5 text-blue-400/50" />
             </div>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               className="w-full pl-10 pr-4 py-3 bg-blue-950/20 border border-blue-500/20 rounded-lg focus:ring-2 focus:ring-blue-500/40 focus:border-transparent outline-none text-blue-100 placeholder-blue-400/50 transition-all duration-300"
-              placeholder="Username"
+              placeholder="Email"
               required
             />
           </div>
@@ -74,7 +88,11 @@ const SignInPage = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-400/50 hover:text-blue-300 transition-colors duration-200"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
 
@@ -88,15 +106,18 @@ const SignInPage = () => {
 
         <div className="mt-6 text-center text-sm space-y-2">
           <p className="text-blue-300/80">
-            No account created? 
+            No account created?
             <Link
-              to="/register" 
+              to="/register"
               className="ml-2 text-blue-400 hover:text-blue-300 transition-colors duration-200 font-semibold"
             >
               Sign Up
             </Link>
           </p>
-          <a href="#" className="text-blue-400 hover:text-blue-300 transition-colors duration-200">
+          <a
+            href="#"
+            className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+          >
             Forgot access codes?
           </a>
         </div>

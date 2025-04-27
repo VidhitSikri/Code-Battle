@@ -16,6 +16,7 @@ import {
   Cpu,
 } from "lucide-react"
 import { Link } from "react-router-dom"
+import axios from "axios"
 
 // Simple Button component to replace the shadcn Button
 const Button = ({ children, className, variant }) => {

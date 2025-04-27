@@ -8,17 +8,14 @@ app.use(express.urlencoded({ extended: true }));
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-const userRoutes = require("./routes/user.route");
-app.use('/users', userRoutes);
-
-
-
-
 const cors = require("cors");
 app.use(cors({
-    origin: ["http://localhost:5173"],
+    origin: "http://localhost:5173",
     credentials: true
 }));
+
+const userRoutes = require("./routes/user.route");
+app.use('/users', userRoutes);
 
 const connectToDb = require("./db/db");
 connectToDb();
