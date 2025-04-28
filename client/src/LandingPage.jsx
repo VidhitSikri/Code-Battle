@@ -62,11 +62,39 @@ const FadeIn = ({ children, delay = 0, className }) => {
 export default function LandingPage() {
   const { user, setUser } = useContext(UserDataContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
   const token = localStorage.getItem("token");
+
+  // On initial render, if token exists, fetch user profile
+  useEffect(() => {
+    if (token) {
+      axios
+        .get(`${import.meta.env.VITE_BASE_URL}/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        })
+        .then((res) => {
+          setUser(res.data.user);
+        })
+        .catch((err) => {
+          console.error("Fetching profile failed:", err);
+        });
+    }
+  }, [token, setUser]);
+
+  // Existing effect for fade-in visibility
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${import.meta.env.VITE_BASE_URL}/users/logout`, { withCredentials: true });
+      await axios.get(`${import.meta.env.VITE_BASE_URL}/users/logout`, {
+        withCredentials: true,
+      });
       localStorage.removeItem("token");
       setUser({
         email: "",
@@ -79,12 +107,6 @@ export default function LandingPage() {
       console.error("Logout failed:", error);
     }
   };
-
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -127,22 +149,23 @@ export default function LandingPage() {
             <div
               className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
-              onMouseLeave={() => setTimeout(() => setDropdownOpen(false), 1000)}
+              onMouseLeave={() =>
+                setTimeout(() => setDropdownOpen(false), 1000)
+              }
             >
               <div className="w-10 h-10 rounded-full bg-black border border-white flex items-center justify-center cursor-pointer">
                 {user.fullname.firstname
                   ? user.fullname.firstname.charAt(0).toUpperCase()
                   : "U"}
               </div>
-              
               {dropdownOpen && (
-                
                 <div className="absolute right-0 mt-2 w-40 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-10">
                   <div className="ml-2 font-bold">
-                  {user.fullname.firstname + ' ' + user.fullname.lastname || "User"}
+                    {user.fullname.firstname + " " + user.fullname.lastname ||
+                      "User"}
                   </div>
                   <Link
-                    to={"/login"}
+                    to={"/profile"}
                     className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-700"
                   >
                     View Profile
@@ -362,7 +385,6 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
             <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-
               Powered By Modern Tech Stack
             </span>
           </h2>
@@ -376,28 +398,28 @@ export default function LandingPage() {
             </FadeIn>
 
             <FadeIn delay={0.1} className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-gray-700/20 rounded-full flex items-center justify-center mb-4 border border-gray-500/30">
+              <div className="cursor-pointer w-20 h-20 bg-gray-700/20 rounded-full flex items-center justify-center mb-4 border border-gray-500/30">
                 <Server className="h-10 w-10 text-gray-300" />
               </div>
               <h3 className="text-lg font-medium text-center">Express</h3>
             </FadeIn>
 
             <FadeIn delay={0.2} className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-blue-900/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30">
+              <div className="cursor-pointer w-20 h-20 bg-blue-900/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30">
                 <Globe className="h-10 w-10 text-blue-400" />
               </div>
               <h3 className="text-lg font-medium text-center">React</h3>
             </FadeIn>
 
             <FadeIn delay={0.3} className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-green-900/20 rounded-full flex items-center justify-center mb-4 border border-green-500/30">
+              <div className="cursor-pointer w-20 h-20 bg-green-900/20 rounded-full flex items-center justify-center mb-4 border border-green-500/30">
                 <Server className="h-10 w-10 text-green-500" />
               </div>
               <h3 className="text-lg font-medium text-center">Node.js</h3>
             </FadeIn>
 
             <FadeIn delay={0.4} className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-purple-900/20 rounded-full flex items-center justify-center mb-4 border border-purple-500/30">
+              <div className="cursor-pointer w-20 h-20 bg-purple-900/20 rounded-full flex items-center justify-center mb-4 border border-purple-500/30">
                 <Cpu className="h-10 w-10 text-purple-400" />
               </div>
               <h3 className="text-lg font-medium text-center">Judge0 API</h3>

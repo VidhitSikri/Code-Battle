@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { User, Lock, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { UserDataContext } from '../src/context/UserContext';
-import {useContext} from 'react'
+import { UserDataContext } from "../src/context/UserContext";
+import { useContext } from "react";
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,22 +18,30 @@ const SignInPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Login attempt:", formData);
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/users/login`,
-      formData,
-      { withCredentials: true }
-    );
-    if (response.status === 200) {
-      const data = response.data;
-      console.log("Login successful:", data);
-      const token = data.token;
-      localStorage.setItem("token", token);
-      console.log(data.user);
-      setUser(data.user);
-      console.log('user:', user);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/login`,
+        formData,
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        const data = response.data;
+        console.log("Login successful:", data);
+        const token = data.token;
+        localStorage.setItem("token", token);
+        console.log(data.user);
+        setUser(data.user);
+        console.log("user:", user);
+        navigate("/");
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        alert("Invalid credentials. Please check your email and password.");
+      } else {
+        alert("invalid credential please try again.");
+      }
+      console.error("Login error:", error);
     }
-
-    navigate("/");
   };
 
   const handleChange = (e) => {

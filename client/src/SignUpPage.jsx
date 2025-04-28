@@ -38,8 +38,9 @@ const SignUpPage = () => {
       localStorage.setItem("token", token);
       setUser(data.user);
       console.log('user:', user);
+      navigate("/");
     }
-    navigate("/");
+    
   };
 
   const handleChange = (e) => {
