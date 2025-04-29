@@ -18,9 +18,10 @@ import {
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { UserDataContext } from "./context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 // Simple Button component to replace the shadcn Button
-const Button = ({ children, className, variant }) => {
+const Button = ({ children, onClick, className, variant, ...props }) => {
   const baseClasses =
     "inline-flex h-10 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
 
@@ -30,7 +31,11 @@ const Button = ({ children, className, variant }) => {
       : "bg-primary text-primary-foreground shadow hover:bg-primary/90";
 
   return (
-    <button className={`${baseClasses} ${variantClasses} ${className}`}>
+    <button
+      onClick={onClick}
+      className={`${baseClasses} ${variantClasses} ${className}`}
+      {...props}
+    >
       {children}
     </button>
   );
@@ -65,6 +70,12 @@ export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false);
 
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+
+  const handleCreateClick = () => {
+    navigate('/create-room')
+  }
 
   // On initial render, if token exists, fetch user profile
   useEffect(() => {
@@ -593,7 +604,7 @@ export default function LandingPage() {
             through competitive battles.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
+            <Button onClick={handleCreateClick} className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
               Create Room
             </Button>
             <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">

@@ -4,6 +4,8 @@ import SignInPage from "./SignInPage.jsx";
 import SignUpPage from "./SignUpPage.jsx";
 
 import "./index.css";
+import CreateRoom from "./CreateRoom.jsx";
+import UserProtectedWrapper from "./UserProtectedWrapper.jsx";
 
 function App() {
   return (
@@ -13,6 +15,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<SignInPage />} />
           <Route path="/register" element={<SignUpPage />} />
+          <Route path="/create-room" element={<UserProtectedWrapper><CreateRoom /></UserProtectedWrapper>} />
         </Routes>
       </div>
     </Router>
