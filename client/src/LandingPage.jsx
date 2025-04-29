@@ -76,6 +76,9 @@ export default function LandingPage() {
   const handleCreateClick = () => {
     navigate('/create-room')
   }
+  const joinMatchHandler = () => {
+    navigate('/join-room')
+  }
 
   // On initial render, if token exists, fetch user profile
   useEffect(() => {
@@ -607,7 +610,7 @@ export default function LandingPage() {
             <Button onClick={handleCreateClick} className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
               Create Room
             </Button>
-            <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
+            <Button onClick={joinMatchHandler} className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
               Join Match
             </Button>
             <Button

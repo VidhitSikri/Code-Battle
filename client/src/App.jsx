@@ -6,6 +6,7 @@ import SignUpPage from "./SignUpPage.jsx";
 import "./index.css";
 import CreateRoom from "./CreateRoom.jsx";
 import UserProtectedWrapper from "./UserProtectedWrapper.jsx";
+import JoinMatch from "./JoinMatch.jsx";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/login" element={<SignInPage />} />
           <Route path="/register" element={<SignUpPage />} />
           <Route path="/create-room" element={<UserProtectedWrapper><CreateRoom /></UserProtectedWrapper>} />
+          <Route path="/join-room" element={<UserProtectedWrapper><JoinMatch /></UserProtectedWrapper>} />
         </Routes>
       </div>
     </Router>
