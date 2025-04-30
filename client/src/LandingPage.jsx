@@ -126,9 +126,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="position-sticky top-0 container mx-auto py-6 px-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Code2 className="h-8 w-8 text-purple-500" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+        <div onClick={() => navigate("/")} className=" cursor-pointer flex items-center gap-2">
+          <Code2  className="cursor-pointer h-8 w-8 text-purple-500" />
+          <h1  className="cursor-pointer text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
             Code Battle
           </h1>
         </div>
@@ -227,10 +227,10 @@ export default function LandingPage() {
                 opponent and climb the leaderboard.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
+                <Button onClick={handleCreateClick} className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6">
                   Create Room
                 </Button>
-                <Button className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
+                <Button onClick={joinMatchHandler} className="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-6">
                   Join Match
                 </Button>
                 <Button
