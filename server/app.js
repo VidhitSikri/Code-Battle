@@ -17,6 +17,9 @@ app.use(cors({
 const userRoutes = require("./routes/user.route");
 app.use('/users', userRoutes);
 
+const battleRoutes = require("./routes/battle.route");
+app.use('/battle', battleRoutes);
+
 const connectToDb = require("./db/db");
 connectToDb();
 
