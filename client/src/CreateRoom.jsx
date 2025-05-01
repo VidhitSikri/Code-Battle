@@ -1,6 +1,6 @@
-"use client"
-
-import { useState } from "react"
+"use client";
+import axios from "axios";
+import { useState } from "react";
 import {
   Code2,
   Clock,
@@ -14,39 +14,64 @@ import {
   Hash,
   BarChart3,
   Languages,
-} from "lucide-react"
+} from "lucide-react";
 
 const CreateBattleRoom = () => {
   const [formData, setFormData] = useState({
-    title: "",
+    battleName: "",
     description: "",
-    questionCount: 5,
-    sameLang: true,
-    languages: ["javascript", "python"],
-    battleType: "time",
+    questionsNumber: 5,
+    isSameLanguage: true,
+    allowedLanguages: [],
+    mode: "time",
     difficulty: "medium",
-    isPublic: true,
-  })
+    isPrivate: true,
+  });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      setFormData({ ...formData, [name]: checked })
-    } else if (name === "languages") {
-      // Handle multi-select for languages
-      const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
-      setFormData({ ...formData, [name]: selectedOptions })
+      setFormData({ ...formData, [name]: checked });
+    } else if (name === "allowedLanguages") {
+      // Handle multi-select for allowedLanguages
+      const selectedOptions = Array.from(
+        e.target.selectedOptions,
+        (option) => option.value
+      );
+      setFormData({ ...formData, [name]: selectedOptions });
     } else {
-      setFormData({ ...formData, [name]: value })
+      setFormData({ ...formData, [name]: value });
     }
-  }
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log("Battle room data:", formData)
-    // Submit logic would go here
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Battle room data:", formData);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/battle/create`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        const data = response.data;
+        console.log("Battle room created:", data);
+        // Handle successful battle room creation
+      }
+    } catch (error) {
+      alert("battle name and description are too short")
+      console.error("Battle room creation error:", error);
+      // Handle battle room creation error
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-6 md:p-8 flex justify-center items-center">
@@ -60,7 +85,8 @@ const CreateBattleRoom = () => {
             </h1>
           </div>
           <p className="text-gray-400 max-w-lg mx-auto">
-            Configure your coding duel parameters and challenge opponents to test their skills
+            Configure your coding duel parameters and challenge opponents to
+            test their skills
           </p>
         </div>
 
@@ -79,16 +105,19 @@ const CreateBattleRoom = () => {
           <div className="p-6 md:p-8 space-y-6">
             {/* Battle Room Title */}
             <div className="space-y-2">
-              <label htmlFor="title" className="flex items-center text-sm font-medium text-gray-300">
+              <label
+                htmlFor="battleName"
+                className="flex items-center text-sm font-medium text-gray-300"
+              >
                 <FileCode className="h-4 w-4 mr-2 text-blue-400" />
                 Battle Room Title
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
+                  id="battleName"
+                  name="battleName"
+                  value={formData.battleName}
                   onChange={handleChange}
                   placeholder="Enter a catchy title for your battle"
                   className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300 placeholder-gray-500"
@@ -100,7 +129,10 @@ const CreateBattleRoom = () => {
 
             {/* Battle Description */}
             <div className="space-y-2">
-              <label htmlFor="description" className="flex items-center text-sm font-medium text-gray-300">
+              <label
+                htmlFor="description"
+                className="flex items-center text-sm font-medium text-gray-300"
+              >
                 <MessageSquare className="h-4 w-4 mr-2 text-blue-400" />
                 Battle Description
               </label>
@@ -119,19 +151,25 @@ const CreateBattleRoom = () => {
 
             {/* Question Count Slider */}
             <div className="space-y-2">
-              <label htmlFor="questionCount" className="flex items-center text-sm font-medium text-gray-300">
+              <label
+                htmlFor="questionsNumber"
+                className="flex items-center text-sm font-medium text-gray-300"
+              >
                 <Hash className="h-4 w-4 mr-2 text-blue-400" />
-                Number of Questions: <span className="ml-2 text-blue-400 font-bold">{formData.questionCount}</span>
+                Number of Questions:{" "}
+                <span className="ml-2 text-blue-400 font-bold">
+                  {formData.questionsNumber}
+                </span>
               </label>
               <div className="relative">
                 <input
                   type="range"
-                  id="questionCount"
-                  name="questionCount"
+                  id="questionsNumber"
+                  name="questionsNumber"
                   min="3"
                   max="10"
                   step="1"
-                  value={formData.questionCount}
+                  value={formData.questionsNumber}
                   onChange={handleChange}
                   className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
@@ -158,15 +196,22 @@ const CreateBattleRoom = () => {
                 </label>
                 <div className="flex items-center space-x-4 bg-gray-900/30 p-3 rounded-lg border border-gray-700">
                   <label className="inline-flex items-center cursor-pointer">
-                  <input
-    type="checkbox"
-    name="sameLang"
-    checked={formData.sameLang}
-    onChange={() => setFormData({ ...formData, sameLang: !formData.sameLang })}
-    className="sr-only peer"
-/>
+                    <input
+                      type="checkbox"
+                      name="isSameLanguage"
+                      checked={formData.isSameLanguage}
+                      onChange={() =>
+                        setFormData({
+                          ...formData,
+                          isSameLanguage: !formData.isSameLanguage,
+                        })
+                      }
+                      className="sr-only peer"
+                    />
                     <div className="relative w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    <span className="ml-3 text-sm font-medium text-gray-300">Same Language</span>
+                    <span className="ml-3 text-sm font-medium text-gray-300">
+                      Same Language
+                    </span>
                   </label>
                 </div>
               </div>
@@ -181,9 +226,9 @@ const CreateBattleRoom = () => {
                   <label className="inline-flex items-center cursor-pointer">
                     <input
                       type="radio"
-                      name="battleType"
+                      name="mode"
                       value="time"
-                      checked={formData.battleType === "time"}
+                      checked={formData.mode === "time"}
                       onChange={handleChange}
                       className="form-radio h-4 w-4 text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500/50 focus:ring-offset-gray-800"
                     />
@@ -195,9 +240,9 @@ const CreateBattleRoom = () => {
                   <label className="inline-flex items-center cursor-pointer">
                     <input
                       type="radio"
-                      name="battleType"
+                      name="mode"
                       value="quality"
-                      checked={formData.battleType === "quality"}
+                      checked={formData.mode === "quality"}
                       onChange={handleChange}
                       className="form-radio h-4 w-4 text-blue-500 bg-gray-700 border-gray-600 focus:ring-blue-500/50 focus:ring-offset-gray-800"
                     />
@@ -211,19 +256,22 @@ const CreateBattleRoom = () => {
 
               {/* Language Selection */}
               <div className="space-y-2">
-                <label htmlFor="languages" className="flex items-center text-sm font-medium text-gray-300">
+                <label
+                  htmlFor="allowedLanguages"
+                  className="flex items-center text-sm font-medium text-gray-300"
+                >
                   <Code2 className="h-4 w-4 mr-2 text-blue-400" />
                   Allowed Languages
                 </label>
                 <div className="relative">
                   <select
-                    id="languages"
-                    name="languages"
+                    id="allowedLanguages"
+                    name="allowedLanguages"
                     multiple
-                    value={formData.languages}
+                    value={formData.allowedLanguages}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300"
-                    disabled={!formData.sameLang}
+                    disabled={!formData.isSameLanguage}
                   >
                     <option value="javascript">JavaScript</option>
                     <option value="python">Python</option>
@@ -234,17 +282,32 @@ const CreateBattleRoom = () => {
                     <option value="go">Go</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
                     </svg>
                   </div>
-                  <p className="mt-1 text-xs text-gray-400">Hold Ctrl/Cmd to select multiple</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    Hold Ctrl/Cmd to select multiple
+                  </p>
                 </div>
               </div>
 
               {/* Difficulty Level */}
               <div className="space-y-2">
-                <label htmlFor="difficulty" className="flex items-center text-sm font-medium text-gray-300">
+                <label
+                  htmlFor="difficulty"
+                  className="flex items-center text-sm font-medium text-gray-300"
+                >
                   <BarChart3 className="h-4 w-4 mr-2 text-blue-400" />
                   Difficulty Level
                 </label>
@@ -262,8 +325,18 @@ const CreateBattleRoom = () => {
                     <option value="mixed">Mixed</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
                     </svg>
                   </div>
                 </div>
@@ -273,25 +346,27 @@ const CreateBattleRoom = () => {
             {/* Public/Private Toggle */}
             <div className="flex items-center justify-between bg-gray-900/30 p-4 rounded-lg border border-gray-700">
               <div className="flex items-center">
-                {formData.isPublic ? (
-                  <Globe className="h-5 w-5 text-blue-400 mr-3" />
-                ) : (
+                {formData.isPrivate ? (
                   <Lock className="h-5 w-5 text-purple-400 mr-3" />
+                ) : (
+                  <Globe className="h-5 w-5 text-blue-400 mr-3" />
                 )}
                 <div>
                   <h3 className="text-sm font-medium text-gray-200">
-                    {formData.isPublic ? "Public Room" : "Private Room"}
+                    {formData.isPrivate ? "Private Room" : "Public Room"}
                   </h3>
                   <p className="text-xs text-gray-400">
-                    {formData.isPublic ? "Anyone can find and join this battle" : "Only people with the link can join"}
+                    {formData.isPrivate
+                      ? "Only people with the link can join"
+                      : "Anyone can find and join this battle"}
                   </p>
                 </div>
               </div>
               <label className="inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  name="isPublic"
-                  checked={formData.isPublic}
+                  name="isPrivate"
+                  checked={formData.isPrivate}
                   onChange={handleChange}
                   className="sr-only peer"
                 />
@@ -313,7 +388,7 @@ const CreateBattleRoom = () => {
             </div>
             <button
               type="submit"
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)] flex items-center"
+              className="cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] hover:shadow-[0_0_25px_rgba(59,130,246,0.7)] flex items-center"
             >
               <Zap className="h-5 w-5 mr-2" />
               Create Battle Room
@@ -323,11 +398,12 @@ const CreateBattleRoom = () => {
 
         {/* Bottom text */}
         <p className="text-center text-gray-500 text-xs mt-6">
-          By creating a battle room, you agree to our Code Battle terms and fair play guidelines
+          By creating a battle room, you agree to our Code Battle terms and fair
+          play guidelines
         </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreateBattleRoom
+export default CreateBattleRoom;
