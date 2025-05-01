@@ -49,7 +49,7 @@ const battleSchema = mongoose.Schema({
     },
     mode: {
         type: String,
-        enum: ['time', 'speed'],
+        enum: ['time', 'quality'],
         required: true
     },
 

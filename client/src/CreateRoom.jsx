@@ -1,4 +1,5 @@
 "use client";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 import {
@@ -27,6 +28,8 @@ const CreateBattleRoom = () => {
     difficulty: "medium",
     isPrivate: true,
   });
+
+  const navigare = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,10 +63,11 @@ const CreateBattleRoom = () => {
           },
         }
       );
-      if (response.status === 200) {
+      if (response.status === 201) {
         const data = response.data;
         console.log("Battle room created:", data);
         // Handle successful battle room creation
+        navigare("/");
       }
     } catch (error) {
       alert("battle name and description are too short")
