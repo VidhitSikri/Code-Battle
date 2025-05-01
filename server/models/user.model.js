@@ -31,6 +31,21 @@ const userSchema = new mongoose.Schema({
     socketId: {
         type: String,
     },
+
+    pastRecords: [{
+        battleId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "battle"
+        },
+        score: {
+            type: Number,
+            default: 0
+        },
+        opponentScore: {
+            type: Number,
+            default: 0
+        }
+    }],
 });
 
 

@@ -37,6 +37,7 @@ const battleSchema = mongoose.Schema({
         type: Boolean,
         required: true
     },
+    
     allowedLanguages: {
         type: [String],
         required: true
@@ -52,15 +53,6 @@ const battleSchema = mongoose.Schema({
         required: true
     },
 
-    participants: [
-        {
-            user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-            score: { type: Number, default: 0 },
-            timeTaken: { type: Number, default: 0 }, // total time in seconds
-            codeSubmission: { type: String, default: "" },
-            languageUsed: { type: String }
-        }
-    ],
     timeLimitPerQuestion: {
         type: Number,
         default: 300 // 5 minutes
@@ -69,20 +61,23 @@ const battleSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
+
     questions: [
         {
             questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'question' },
             status: {
                 type: String,
-                enum: ['unanswered', 'correct', 'wrong'],
-                default: 'unanswered'
+                enum: ['not-started', 'in-progress', 'completed'],
+                default: 'not-started'
             }
         }
     ],
+
     winner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
+
     user1SocketId: {
         type: String
     },
@@ -92,7 +87,10 @@ const battleSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+
+
+
 });
 
 const battleModel = mongoose.model("battle", battleSchema);
