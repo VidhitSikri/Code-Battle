@@ -105,7 +105,7 @@ export default function LandingPage() {
     if(token) {
       sendMessage("join", user._id);
     }
-  });
+  },[token, sendMessage, user._id]);
 
   // Existing effect for fade-in visibility
   useEffect(() => {
