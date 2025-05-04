@@ -19,6 +19,7 @@ function initializeSocket(server) {
         socket.on('join', async (userId) => {
             try {
                 await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
+                console.log(`User ${userId} connected with socket ID: ${socket.id}`);
                 
             }catch (error) {
                 console.error('Error updating user socket ID:', error);

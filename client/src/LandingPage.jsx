@@ -19,7 +19,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { UserDataContext } from "./context/UserContext";
 import { useNavigate } from "react-router-dom";
-
+import { SocketContext } from "./context/SocketContext";
 // Simple Button component to replace the shadcn Button
 const Button = ({ children, onClick, className, variant, ...props }) => {
   const baseClasses =
@@ -72,6 +72,8 @@ export default function LandingPage() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  const { sendMessage, recieveMessage } = useContext(SocketContext);
+
 
   const handleCreateClick = () => {
     navigate('/create-room')
@@ -98,6 +100,12 @@ export default function LandingPage() {
         });
     }
   }, [token, setUser]);
+
+  useEffect(() => {
+    if(token) {
+      sendMessage("join", user._id);
+    }
+  });
 
   // Existing effect for fade-in visibility
   useEffect(() => {
