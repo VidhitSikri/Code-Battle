@@ -40,6 +40,17 @@ module.exports.createBattle = async (req, res, next) => {
     });
 
     res.status(201).json({ battle });
+
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.getAllBattles = async (req, res, next) => {
+  try {
+    const battles = await battleModel.find({});
+    res.status(200).json({ battles });
   } catch (error) {
     next(error);
   }

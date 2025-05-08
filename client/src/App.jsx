@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./LandingPage.jsx";
 import SignInPage from "./SignInPage.jsx";
-import SignUpPage from "./SignUpPage.jsx";
-
+import SignUpPage from "./SignUpPage.jsx"; 
+import BattleArena from "./BattleArena.jsx";
 import "./index.css";
 import CreateRoom from "./CreateRoom.jsx";
 import UserProtectedWrapper from "./UserProtectedWrapper.jsx";
@@ -18,6 +18,7 @@ function App() {
           <Route path="/register" element={<SignUpPage />} />
           <Route path="/create-room" element={<UserProtectedWrapper><CreateRoom /></UserProtectedWrapper>} />
           <Route path="/join-room" element={<UserProtectedWrapper><JoinMatch /></UserProtectedWrapper>} />
+          <Route path="/rooms/:roomcode" element={<UserProtectedWrapper><BattleArena /></UserProtectedWrapper>} />
         </Routes>
       </div>
     </Router>

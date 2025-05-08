@@ -26,6 +26,11 @@ function initializeSocket(server) {
             }
         });
 
+        socket.join('battleRoom', (roomId) => {
+            socket.join(roomId);
+            console.log(`Socket ${socket.id} joined room: ${roomId}`);
+        });
+
 
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);

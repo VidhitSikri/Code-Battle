@@ -116,14 +116,37 @@ const JoinRoom = () => {
     return matchesSearch && matchesDifficulty
   })
 
-  const handleJoinPrivateRoom = (e) => {
-    e.preventDefault()
+  const handleJoinPrivateRoom = async (e) => {
+    e.preventDefault();
     if (privateRoomCode.trim()) {
-      console.log(`Joining private room with code: ${privateRoomCode}`)
-      // Here you would handle the room joining logic
-      setPrivateRoomCode("")
+      const roomCode = privateRoomCode.trim();
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/battle/all`,
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.status === 200) {
+          const battles = response.data.battles; // Adjust according to your API's response structure
+          const battle = battles.find((b) => b.roomCode === roomCode);
+          if (battle) {
+            console.log(`Found battle with code: ${roomCode}`);
+            // Here you can send a socket message or perform any additional logic before joining
+            navigate(`/rooms/${roomCode}`);
+          } else {
+            alert("Battle room not found or invalid room code");
+          }
+        }
+      } catch (error) {
+        console.error("Error retrieving battle rooms:", error);
+        alert("Error retrieving battle rooms");
+      }
+      setPrivateRoomCode("");
     }
-  }
+  };
 
   const handleJoinPublicRoom = (roomId) => {
     console.log(`Joining public room with ID: ${roomId}`)

@@ -12,7 +12,10 @@ router.post('/create', [
     body('isPrivate').isBoolean().withMessage('Is private must be a boolean'),
     body('isSameLanguage').isBoolean().withMessage('Is same language must be a boolean'),
     
-],authMiddleware.authUser, battleController.createBattle)
+],authMiddleware.authUser, battleController.createBattle);
+
+
+router.get('/all', authMiddleware.authUser, battleController.getAllBattles);
 
 
 module.exports = router;

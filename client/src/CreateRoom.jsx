@@ -1,7 +1,8 @@
 "use client";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { SocketContext } from "./context/SocketContext";
 import {
   Code2,
   Clock,
@@ -29,7 +30,8 @@ const CreateBattleRoom = () => {
     isPrivate: true,
   });
 
-  const navigare = useNavigate();
+  const navigate = useNavigate();
+  const { sendMessage, recieveMessage } = useContext(SocketContext);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -67,7 +69,9 @@ const CreateBattleRoom = () => {
         const data = response.data;
         console.log("Battle room created:", data);
         // Handle successful battle room creation
-        navigare("/");
+        const roomCode = data.battle.roomCode;
+        sendMessage('battleRoom', roomCode);
+        navigate(`/rooms/${roomCode}`);
       }
     } catch (error) {
       alert("battle name and description are too short")
@@ -326,7 +330,6 @@ const CreateBattleRoom = () => {
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
-                    <option value="mixed">Mixed</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                     <svg
