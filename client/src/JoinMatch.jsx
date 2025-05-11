@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState } from "react";
+import { SocketContext } from "./context/SocketContext";
 import {
   Code2,
   Clock,
@@ -30,6 +31,7 @@ const JoinRoom = () => {
 
   const navigate = useNavigate()
   const { user, setUser } = useContext(UserDataContext)
+  const { sendMessage, recieveMessage } = useContext(SocketContext);
 
   // Hardcoded battle rooms data
   const battleRooms = [
@@ -134,8 +136,13 @@ const JoinRoom = () => {
           const battle = battles.find((b) => b.roomCode === roomCode);
           if (battle) {
             console.log(`Found battle with code: ${roomCode}`);
+            sendMessage('battleRoom', roomCode);
             // Here you can send a socket message or perform any additional logic before joining
             navigate(`/rooms/${roomCode}`);
+
+            
+
+
           } else {
             alert("Battle room not found or invalid room code");
           }
