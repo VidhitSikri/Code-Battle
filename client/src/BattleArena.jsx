@@ -1,71 +1,156 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
-import { Code2, Copy, Share2, Users, Clock, Shield, Zap, CheckCircle, X, PlayCircle, Loader } from "lucide-react"
+import { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  Code2,
+  Copy,
+  Share2,
+  Users,
+  Clock,
+  Shield,
+  Zap,
+  CheckCircle,
+  X,
+  PlayCircle,
+  Loader,
+} from "lucide-react";
+import { UserDataContext } from "./context/UserContext"; // adjust path accordingly
 
 const BattleArena = () => {
-  const { roomcode } = useParams()
-  const [isCreator, setIsCreator] = useState(true) // In a real app, this would be determined by auth
-  const [opponentJoined, setOpponentJoined] = useState(false)
-  const [copySuccess, setCopySuccess] = useState(false)
-  const [shareSuccess, setShareSuccess] = useState(false)
-  const [waitTime, setWaitTime] = useState(0)
+  const { roomcode } = useParams();
+  const navigate = useNavigate();
+  const { user } = useContext(UserDataContext);
 
-  // Mock room data - in a real app, this would come from an API
-  const roomData = {
-    title: "Algorithm Showdown",
-    description: "Race to solve classic algorithm challenges with optimal solutions",
-    questions: 5,
-    difficulty: "medium",
-    sameLang: true,
-    languages: ["JavaScript", "Python"],
-    mode: "speed",
-    timeLimit: 30, // minutes
-  }
+  const [battle, setBattle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isCreator, setIsCreator] = useState(false);
+  const [opponentJoined, setOpponentJoined] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+  const [waitTime, setWaitTime] = useState(0);
+
+  // Fetch the battle data on initial render based on the roomcode from useParams
+  useEffect(() => {
+    const fetchBattle = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/battle/all`,
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.status === 200) {
+          const battles = response.data.battles; // ensure your API returns an array named "battles"
+          const foundBattle = battles.find((b) => b.roomCode === roomcode);
+          setBattle(foundBattle);
+        }
+      } catch (error) {
+        console.error("Error fetching battle:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (roomcode) {
+      fetchBattle();
+    }
+  }, [roomcode]);
+
+  // Set isCreator based on battle data and current user
+  useEffect(() => {
+    if (battle && user) {
+      // battle.createdBy may be an objectId; compare as strings
+      setIsCreator(battle.createdBy.toString() === user._id.toString());
+    }
+  }, [battle, user]);
 
   // Simulate waiting time counter
   useEffect(() => {
     if (!opponentJoined) {
       const timer = setInterval(() => {
-        setWaitTime((prev) => prev + 1)
-      }, 1000)
-      return () => clearInterval(timer)
+        setWaitTime((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(timer);
     }
-  }, [opponentJoined])
+  }, [opponentJoined]);
 
-  // Simulate opponent joining after some time (for demo purposes)
+  // Polling to check for opponent connection based on backend data
   useEffect(() => {
-    if (isCreator && !opponentJoined) {
-      const joinTimer = setTimeout(() => {
-        setOpponentJoined(true)
-      }, 10000) // Opponent joins after 10 seconds for demo
-      return () => clearTimeout(joinTimer)
+    let pollInterval;
+    const pollBattle = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/battle/all`,
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (response.status === 200) {
+          const battles = response.data.battles;
+          const updatedBattle = battles.find((b) => b.roomCode === roomcode);
+          setBattle(updatedBattle);
+          if (updatedBattle && updatedBattle.user2SocketId) {
+            setOpponentJoined(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error polling battle:", error);
+      }
+    };
+
+    // Only poll if the creator is waiting for an opponent
+    if (isCreator && !opponentJoined && roomcode) {
+      pollInterval = setInterval(pollBattle, 3000);
     }
-  }, [isCreator, opponentJoined])
+
+    return () => clearInterval(pollInterval);
+  }, [isCreator, opponentJoined, roomcode]);
 
   const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomcode)
-    setCopySuccess(true)
-    setTimeout(() => setCopySuccess(false), 2000)
-  }
+    navigator.clipboard.writeText(roomcode);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   const shareRoomCode = () => {
-    // In a real app, this would open a share dialog or generate a shareable link
-    // For now, we'll just simulate success
-    setShareSuccess(true)
-    setTimeout(() => setShareSuccess(false), 2000)
-  }
+    setShareSuccess(true);
+    setTimeout(() => setShareSuccess(false), 2000);
+  };
 
   const startBattle = () => {
-    // This function now does nothing - you'll implement it later
-    console.log("Start battle button clicked - functionality to be implemented")
-  }
+    console.log(
+      "Start battle button clicked - functionality to be implemented"
+    );
+  };
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-gray-100 flex justify-center items-center">
+        <Loader className="h-12 w-12 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!battle) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-gray-100 flex justify-center items-center">
+        <p>Battle not found</p>
+      </div>
+    );
   }
 
   return (
@@ -91,15 +176,19 @@ const BattleArena = () => {
           {/* Battle Room Info */}
           <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden mb-8">
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-white mb-2">{roomData.title}</h2>
-              <p className="text-gray-400 mb-6">{roomData.description}</p>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {battle.battleName}
+              </h2>
+              <p className="text-gray-400 mb-6">{battle.description}</p>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                   <div className="text-xs text-gray-400 mb-1">Difficulty</div>
                   <div className="flex items-center">
                     <Shield className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="font-medium capitalize">{roomData.difficulty}</span>
+                    <span className="font-medium capitalize">
+                      {battle.difficulty}
+                    </span>
                   </div>
                 </div>
 
@@ -107,17 +196,19 @@ const BattleArena = () => {
                   <div className="text-xs text-gray-400 mb-1">Questions</div>
                   <div className="flex items-center">
                     <Code2 className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="font-medium">{roomData.questions}</span>
+                    <span className="font-medium">
+                      {battle.questionsNumber}
+                    </span>
                   </div>
                 </div>
 
                 <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                   <div className="text-xs text-gray-400 mb-1">Mode</div>
                   <div className="flex items-center">
-                    {roomData.mode === "speed" ? (
+                    {battle.mode === "time" ? (
                       <>
                         <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                        <span className="font-medium">Speed-based</span>
+                        <span className="font-medium">Time-based</span>
                       </>
                     ) : (
                       <>
@@ -132,7 +223,11 @@ const BattleArena = () => {
                   <div className="text-xs text-gray-400 mb-1">Languages</div>
                   <div className="flex items-center">
                     <Code2 className="h-4 w-4 mr-2 text-blue-400" />
-                    <span className="font-medium">{roomData.sameLang ? roomData.languages.join(", ") : "Any"}</span>
+                    <span className="font-medium">
+                      {battle.isSameLanguage
+                        ? battle.allowedLanguages.join(", ")
+                        : "Any"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -145,7 +240,9 @@ const BattleArena = () => {
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 bg-gray-900/70 rounded-lg border border-gray-700 p-3 flex items-center justify-between">
-                      <div className="font-mono text-xl text-blue-400 tracking-wider">{roomcode}</div>
+                      <div className="font-mono text-xl text-blue-400 tracking-wider">
+                        {battle.roomCode}
+                      </div>
                       <button
                         onClick={copyRoomCode}
                         className={`p-2 rounded-md transition-all duration-300 ${
@@ -154,13 +251,19 @@ const BattleArena = () => {
                             : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
                         }`}
                       >
-                        {copySuccess ? <CheckCircle className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                        {copySuccess ? (
+                          <CheckCircle className="h-5 w-5" />
+                        ) : (
+                          <Copy className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                     <button
                       onClick={shareRoomCode}
                       className={`px-4 py-3 rounded-lg transition-all duration-300 flex items-center justify-center ${
-                        shareSuccess ? "bg-green-600 text-white" : "bg-purple-600 hover:bg-purple-700 text-white"
+                        shareSuccess
+                          ? "bg-green-600 text-white"
+                          : "bg-purple-600 hover:bg-purple-700 text-white"
                       }`}
                     >
                       {shareSuccess ? (
@@ -190,8 +293,12 @@ const BattleArena = () => {
                     <div className="flex items-center justify-center text-green-400 mb-4">
                       <CheckCircle className="h-12 w-12" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white">Opponent has joined!</h3>
-                    <p className="text-gray-400">You can now start the battle when you're ready.</p>
+                    <h3 className="text-2xl font-bold text-white">
+                      Opponent has joined!
+                    </h3>
+                    <p className="text-gray-400">
+                      You can now start the battle when you're ready.
+                    </p>
                     <button
                       onClick={startBattle}
                       className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 flex items-center justify-center mx-auto"
@@ -209,9 +316,15 @@ const BattleArena = () => {
                         <Users className="h-8 w-8 text-blue-400" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-white">Waiting for opponent...</h3>
-                    <p className="text-gray-400">Share the room code with your opponent to join.</p>
-                    <div className="text-gray-500 font-mono">Waiting time: {formatTime(waitTime)}</div>
+                    <h3 className="text-2xl font-bold text-white">
+                      Waiting for opponent...
+                    </h3>
+                    <p className="text-gray-400">
+                      Share the room code with your opponent to join.
+                    </p>
+                    <div className="text-gray-500 font-mono">
+                      Waiting time: {formatTime(waitTime)}
+                    </div>
                   </div>
                 )
               ) : (
@@ -219,8 +332,12 @@ const BattleArena = () => {
                   <div className="flex items-center justify-center text-blue-400 mb-4">
                     <Loader className="h-12 w-12 animate-spin" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white">Waiting for creator to start...</h3>
-                  <p className="text-gray-400">The battle will begin shortly.</p>
+                  <h3 className="text-2xl font-bold text-white">
+                    Waiting for creator to start...
+                  </h3>
+                  <p className="text-gray-400">
+                    The battle will begin shortly.
+                  </p>
                 </div>
               )}
             </div>
@@ -228,7 +345,7 @@ const BattleArena = () => {
         </div>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default BattleArena
+export default BattleArena;
