@@ -94,9 +94,19 @@ const BattleArena = () => {
         if (response.status === 200) {
           const battles = response.data.battles;
           const updatedBattle = battles.find((b) => b.roomCode === roomcode);
-          setBattle(updatedBattle);
-          if (updatedBattle && updatedBattle.user2SocketId) {
-            setOpponentJoined(true);
+          if (!updatedBattle) {
+            // If the battle is not present and the user is not the creator,
+            // then the creator must have left; navigate home.
+            if (!isCreator) {
+              navigate("/");
+            }
+          } else {
+            setBattle(updatedBattle);
+            if (updatedBattle.user2SocketId) {
+              setOpponentJoined(true);
+            } else {
+              setOpponentJoined(false);
+            }
           }
         }
       } catch (error) {
@@ -104,13 +114,12 @@ const BattleArena = () => {
       }
     };
 
-    // Only poll if the creator is waiting for an opponent
-    if (isCreator && !opponentJoined && roomcode) {
+    // Both creator and non-creator need to poll to know when battle is deleted
+    if (roomcode) {
       pollInterval = setInterval(pollBattle, 3000);
     }
-
     return () => clearInterval(pollInterval);
-  }, [isCreator, opponentJoined, roomcode]);
+  }, [isCreator, roomcode, navigate]);
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomcode);
@@ -124,17 +133,49 @@ const BattleArena = () => {
   };
 
   const startBattle = () => {
-    console.log(
-      "Start battle button clicked - functionality to be implemented"
-    );
+    console.log("Start battle button clicked - functionality to be implemented");
+  };
+
+  // New leave room functionality
+  const handleLeaveRoom = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      if (isCreator) {
+        const confirmed = window.confirm(
+          "Are you sure you want to leave and delete this battle?"
+        );
+        if (confirmed) {
+          await axios.delete(
+            `${import.meta.env.VITE_BASE_URL}/battle/${battle._id}`,
+            {
+              withCredentials: true,
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          // Optionally, you may also want to notify other connected clients
+          navigate("/");
+        }
+      } else {
+        // For non-creators, update battle to remove their socket ID
+        await axios.patch(
+          `${import.meta.env.VITE_BASE_URL}/battle/leave/${battle._id}`,
+          { user2SocketId: null },
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error leaving room:", error);
+    }
   };
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -164,7 +205,10 @@ const BattleArena = () => {
               Code Battle
             </h1>
           </div>
-          <button className="px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg transition-all duration-300 flex items-center text-sm font-medium">
+          <button
+            onClick={handleLeaveRoom}
+            className="px-4 py-2 bg-red-600/80 hover:bg-red-700 rounded-lg transition-all duration-300 flex items-center text-sm font-medium"
+          >
             <X className="h-4 w-4 mr-2" />
             Leave Room
           </button>

@@ -17,5 +17,9 @@ router.post('/create', [
 
 router.get('/all', authMiddleware.authUser, battleController.getAllBattles);
 
+router.delete('/:id', authMiddleware.authUser, battleController.deleteBattle);
+
+
+router.patch('/leave/:id', authMiddleware.authUser, battleController.leaveBattle);
 
 module.exports = router;
