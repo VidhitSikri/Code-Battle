@@ -114,7 +114,6 @@ const BattleArena = () => {
       }
     };
 
-    // Both creator and non-creator need to poll to know when battle is deleted
     if (roomcode) {
       pollInterval = setInterval(pollBattle, 3000);
     }
@@ -133,7 +132,9 @@ const BattleArena = () => {
   };
 
   const startBattle = () => {
-    console.log("Start battle button clicked - functionality to be implemented");
+    console.log(
+      "Start battle button clicked - functionality to be implemented"
+    );
   };
 
   // New leave room functionality
@@ -152,11 +153,9 @@ const BattleArena = () => {
               headers: { Authorization: `Bearer ${token}` },
             }
           );
-          // Optionally, you may also want to notify other connected clients
           navigate("/");
         }
       } else {
-        // For non-creators, update battle to remove their socket ID
         await axios.patch(
           `${import.meta.env.VITE_BASE_URL}/battle/leave/${battle._id}`,
           { user2SocketId: null },
@@ -175,7 +174,9 @@ const BattleArena = () => {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -276,7 +277,8 @@ const BattleArena = () => {
                 </div>
               </div>
 
-              {isCreator && (
+              {/* Room Code / Room Type Block */}
+              {battle.isPrivate ? (
                 <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700/30 rounded-xl p-5 mb-6">
                   <h3 className="text-lg font-semibold mb-3 flex items-center">
                     <Users className="h-5 w-5 mr-2 text-blue-400" />
@@ -324,6 +326,16 @@ const BattleArena = () => {
                     </button>
                   </div>
                 </div>
+              ) : (
+                <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-700/30 rounded-xl p-5 mb-6">
+                  <h3 className="text-lg font-semibold mb-3 flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-blue-400" />
+                    Public Room
+                  </h3>
+                  <p className="text-gray-400">
+                    Anyone can join this room without a code.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -364,7 +376,7 @@ const BattleArena = () => {
                       Waiting for opponent...
                     </h3>
                     <p className="text-gray-400">
-                      Share the room code with your opponent to join.
+                      Share the room details with your opponent to join.
                     </p>
                     <div className="text-gray-500 font-mono">
                       Waiting time: {formatTime(waitTime)}
