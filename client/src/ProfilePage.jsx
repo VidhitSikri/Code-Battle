@@ -13,17 +13,28 @@ import {
   Star,
   Clock,
   ChevronRight,
+  Bell,
+  Moon,
+  Sun,
+  Globe,
+  Lock,
+  Key,
+  Mail,
+  Github,
+  Twitter,
+  Linkedin,
   CheckCircle,
   X,
   AlertCircle,
   Cpu,
-  Key,
-  Mail,
 } from "lucide-react"
 
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("profile")
   const [editMode, setEditMode] = useState(false)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [darkMode, setDarkMode] = useState(true)
+  const [profileVisibility, setProfileVisibility] = useState("public")
   const [showSuccessToast, setShowSuccessToast] = useState(false)
 
   // Mock user data - in a real app, this would come from an API
@@ -34,6 +45,11 @@ const ProfilePage = () => {
     bio: "Full-stack developer passionate about algorithms and competitive coding. I love solving complex problems and learning new technologies.",
     location: "San Francisco, CA",
     joinedDate: "January 2023",
+    github: "github.com/codeninja",
+    twitter: "twitter.com/codeninja",
+    linkedin: "linkedin.com/in/codeninja",
+    preferredLanguages: ["JavaScript", "Python", "Go"],
+    avatarUrl: null, // We'll use initials if no avatar
   })
 
   // Mock stats data
@@ -185,9 +201,17 @@ const ProfilePage = () => {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-500/20">
-                {getInitials(userData.fullName)}
-              </div>
+              {userData.avatarUrl ? (
+                <img
+                  src={userData.avatarUrl || "/placeholder.svg"}
+                  alt={userData.username}
+                  className="w-24 h-24 rounded-full border-2 border-blue-500 shadow-lg shadow-blue-500/20"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-500/20">
+                  {getInitials(userData.fullName)}
+                </div>
+              )}
               <div className="absolute -bottom-2 -right-2 bg-blue-500 rounded-full p-1 shadow-lg">
                 <Trophy className="h-5 w-5 text-white" />
               </div>
@@ -198,6 +222,13 @@ const ProfilePage = () => {
               <h2 className="text-2xl font-bold">{userData.username}</h2>
               <p className="text-gray-400">{userData.fullName}</p>
               <p className="text-sm text-gray-500 mt-1">Joined {userData.joinedDate}</p>
+              <div className="mt-3 flex flex-wrap justify-center md:justify-start gap-2">
+                {userData.preferredLanguages.map((lang) => (
+                  <span key={lang} className="px-2 py-1 bg-gray-800/70 rounded-full text-xs border border-gray-700">
+                    {lang}
+                  </span>
+                ))}
+              </div>
             </div>
 
             {/* Stats */}
@@ -399,6 +430,147 @@ const ProfilePage = () => {
                       <div className="md:col-span-2 font-medium">{userData.location}</div>
                     )}
                   </div>
+
+                  {/* Preferred Languages */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div className="text-gray-400">Preferred Languages</div>
+                    {editMode ? (
+                      <div className="md:col-span-2">
+                        <select
+                          multiple
+                          value={userData.preferredLanguages}
+                          onChange={(e) =>
+                            setUserData({
+                              ...userData,
+                              preferredLanguages: Array.from(e.target.selectedOptions, (option) => option.value),
+                            })
+                          }
+                          className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                        >
+                          <option value="JavaScript">JavaScript</option>
+                          <option value="Python">Python</option>
+                          <option value="Java">Java</option>
+                          <option value="C++">C++</option>
+                          <option value="Go">Go</option>
+                          <option value="Ruby">Ruby</option>
+                          <option value="PHP">PHP</option>
+                          <option value="Swift">Swift</option>
+                          <option value="Kotlin">Kotlin</option>
+                          <option value="Rust">Rust</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                      </div>
+                    ) : (
+                      <div className="md:col-span-2">
+                        <div className="flex flex-wrap gap-2">
+                          {userData.preferredLanguages.map((lang) => (
+                            <span
+                              key={lang}
+                              className="px-2 py-1 bg-gray-900/70 rounded-full text-xs border border-gray-700"
+                            >
+                              {lang}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-8 border-t border-gray-700 pt-6">
+                  <h3 className="text-xl font-bold mb-6">Social Profiles</h3>
+
+                  <div className="space-y-6">
+                    {/* GitHub */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                      <div className="flex items-center text-gray-400">
+                        <Github className="h-4 w-4 mr-2" />
+                        GitHub
+                      </div>
+                      {editMode ? (
+                        <div className="md:col-span-2">
+                          <input
+                            type="text"
+                            value={userData.github}
+                            onChange={(e) => setUserData({ ...userData, github: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                            placeholder="github.com/username"
+                          />
+                        </div>
+                      ) : (
+                        <div className="md:col-span-2 font-medium">
+                          <a
+                            href={`https://${userData.github}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline"
+                          >
+                            {userData.github}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Twitter */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                      <div className="flex items-center text-gray-400">
+                        <Twitter className="h-4 w-4 mr-2" />
+                        Twitter
+                      </div>
+                      {editMode ? (
+                        <div className="md:col-span-2">
+                          <input
+                            type="text"
+                            value={userData.twitter}
+                            onChange={(e) => setUserData({ ...userData, twitter: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                            placeholder="twitter.com/username"
+                          />
+                        </div>
+                      ) : (
+                        <div className="md:col-span-2 font-medium">
+                          <a
+                            href={`https://${userData.twitter}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline"
+                          >
+                            {userData.twitter}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* LinkedIn */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                      <div className="flex items-center text-gray-400">
+                        <Linkedin className="h-4 w-4 mr-2" />
+                        LinkedIn
+                      </div>
+                      {editMode ? (
+                        <div className="md:col-span-2">
+                          <input
+                            type="text"
+                            value={userData.linkedin}
+                            onChange={(e) => setUserData({ ...userData, linkedin: e.target.value })}
+                            className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                            placeholder="linkedin.com/in/username"
+                          />
+                        </div>
+                      ) : (
+                        <div className="md:col-span-2 font-medium">
+                          <a
+                            href={`https://${userData.linkedin}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:underline"
+                          >
+                            {userData.linkedin}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -551,6 +723,120 @@ const ProfilePage = () => {
                       </div>
                       <button className="px-3 py-1.5 bg-red-600/80 hover:bg-red-700 rounded-lg transition-all duration-300 text-sm">
                         Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferences */}
+              <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-6">Preferences</h3>
+
+                  <div className="space-y-6">
+                    {/* Notifications */}
+                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                      <div className="flex items-start">
+                        <Bell className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium">Notifications</h4>
+                          <p className="text-sm text-gray-400">Enable or disable in-app notifications</p>
+                        </div>
+                      </div>
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={notificationsEnabled}
+                          onChange={() => setNotificationsEnabled(!notificationsEnabled)}
+                          className="sr-only peer"
+                        />
+                        <div className="relative w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* Dark Mode */}
+                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                      <div className="flex items-start">
+                        {darkMode ? (
+                          <Moon className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        ) : (
+                          <Sun className="h-5 w-5 text-yellow-400 mr-3 mt-0.5" />
+                        )}
+                        <div>
+                          <h4 className="font-medium">Dark Mode</h4>
+                          <p className="text-sm text-gray-400">Toggle between dark and light theme</p>
+                        </div>
+                      </div>
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={darkMode}
+                          onChange={() => setDarkMode(!darkMode)}
+                          className="sr-only peer"
+                        />
+                        <div className="relative w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    {/* Profile Visibility */}
+                    <div className="flex justify-between items-center py-3">
+                      <div className="flex items-start">
+                        {profileVisibility === "public" ? (
+                          <Globe className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        ) : (
+                          <Lock className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        )}
+                        <div>
+                          <h4 className="font-medium">Profile Visibility</h4>
+                          <p className="text-sm text-gray-400">Control who can see your profile</p>
+                        </div>
+                      </div>
+                      <select
+                        value={profileVisibility}
+                        onChange={(e) => setProfileVisibility(e.target.value)}
+                        className="bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm"
+                      >
+                        <option value="public">Public</option>
+                        <option value="friends">Friends Only</option>
+                        <option value="private">Private</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Connected Accounts */}
+              <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold mb-6">Connected Accounts</h3>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                      <div className="flex items-center">
+                        <Github className="h-6 w-6 text-white mr-3" />
+                        <div>
+                          <h4 className="font-medium">GitHub</h4>
+                          <p className="text-sm text-gray-400">Connected</p>
+                        </div>
+                      </div>
+                      <button className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-300 text-sm">
+                        Disconnect
+                      </button>
+                    </div>
+
+                    <div className="flex justify-between items-center py-3">
+                      <div className="flex items-center">
+                        <div className="h-6 w-6 bg-[#1DA1F2] rounded flex items-center justify-center mr-3">
+                          <Twitter className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">Twitter</h4>
+                          <p className="text-sm text-gray-400">Not connected</p>
+                        </div>
+                      </div>
+                      <button className="px-3 py-1.5 bg-blue-600/80 hover:bg-blue-700 rounded-lg transition-all duration-300 text-sm">
+                        Connect
                       </button>
                     </div>
                   </div>
