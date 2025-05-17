@@ -30,6 +30,8 @@ const BattleArena = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [waitTime, setWaitTime] = useState(0);
+  const [showBattleModal, setShowBattleModal] = useState(false);
+  const [opponentData, setOpponentData] = useState(null);
 
   // Fetch the battle data on initial render based on the roomcode from useParams
   useEffect(() => {
@@ -131,10 +133,41 @@ const BattleArena = () => {
     setTimeout(() => setShareSuccess(false), 2000);
   };
 
-  const startBattle = () => {
-    console.log(
-      "Start battle button clicked - functionality to be implemented"
-    );
+  const startBattle = async () => {
+    if (!isCreator || !battle.user2SocketId) return;
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/users/getOpponent/${
+          battle.user2SocketId
+        }`,
+        {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.status === 200) {
+        let opponent = response.data.opponent;
+        // If the API returns an array, pick the first element
+        if (Array.isArray(opponent)) {
+          opponent = opponent[0];
+        }
+        if (opponent && opponent.fullname) {
+          setOpponentData(opponent);
+          setShowBattleModal(true);
+        } else {
+          console.error("Opponent data missing fullname");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching opponent data:", error);
+    }
+  };
+
+  const confirmStartBattle = () => {
+    // Add further logic to actually start the battle here
+    console.log("Battle Started!");
+    setShowBattleModal(false);
   };
 
   // New leave room functionality
@@ -400,6 +433,75 @@ const BattleArena = () => {
           </div>
         </div>
       </main>
+
+      {/* Modal for Battle Details */}
+      {isCreator && showBattleModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 rounded-2xl p-8 w-96 shadow-2xl transform transition-all duration-300 scale-100 hover:scale-105">
+            <h2 className="text-3xl font-extrabold text-white mb-6 text-center">
+              Battle Details
+            </h2>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Creator: </span>
+              <span className="text-white">{user.fullname.firstname}</span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Opponent: </span>
+              <span className="text-white">
+                {opponentData && opponentData.fullname
+                  ? opponentData.fullname.firstname
+                  : "Loading..."}
+              </span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Battle Name: </span>
+              <span className="text-white">{battle.battleName}</span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Description: </span>
+              <span className="text-white">{battle.description}</span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Questions: </span>
+              <span className="text-white">{battle.questionsNumber}</span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Mode: </span>
+              <span className="text-white">
+                {battle.mode === "time" ? "Time-based" : "Quality-based"}
+              </span>
+            </div>
+            <div className="mb-3">
+              <span className="text-gray-200 font-medium">Difficulty: </span>
+              <span className="text-white capitalize">{battle.difficulty}</span>
+            </div>
+            <div className="mb-6">
+              <span className="text-gray-200 font-medium">
+                Languages Allowed:{" "}
+              </span>
+              <span className="text-white">
+                {battle.isSameLanguage
+                  ? battle.allowedLanguages.join(", ")
+                  : "Any"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <button
+                onClick={() => setShowBattleModal(false)}
+                className="flex-1 mr-2 py-3 border border-red-400 text-red-400 font-semibold rounded-full hover:bg-red-400 hover:text-white transition-all duration-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStartBattle}
+                className="flex-1 ml-2 py-3 bg-green-500 font-semibold text-white rounded-full hover:bg-green-600 transition-all duration-300 shadow-lg shadow-green-400/50"
+              >
+                Start Battle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
