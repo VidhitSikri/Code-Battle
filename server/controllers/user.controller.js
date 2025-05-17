@@ -56,3 +56,12 @@ module.exports.logoutUser = async (req, res, next) => {
 
     res.status(200).json({ message: "Logged out successfully" });
 }
+
+module.exports.getOpponent = async (req, res, next) => {
+    const { socketId } = req.params;
+    const opponent = await userService.getOpponent(socketId);
+    if (!opponent) {
+        return res.status(404).json({ message: "Opponent not found" });
+    }
+    res.status(200).json({ opponent });
+}

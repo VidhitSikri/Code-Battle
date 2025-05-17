@@ -16,3 +16,12 @@ module.exports.createUser = async({firstname,lastname,email,password})=>{
 
     return user;
 }
+
+
+module.exports.getOpponent = async (socketId) => {
+    const user = await userModel.find({ socketId });
+    if (!user) {
+        throw new Error("User not found");
+    }
+    return user;
+}
