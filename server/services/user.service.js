@@ -33,3 +33,16 @@ module.exports.deleteUser = async (userId) => {
     }
     return deletedUser;
 }
+
+
+module.exports.updateUserSettings = async (userId, updateData) => {
+    const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        updateData,
+        { new: true, runValidators: true }
+    );
+    if (!updatedUser) {
+        throw new Error("User not found");
+    }
+    return updatedUser;
+};

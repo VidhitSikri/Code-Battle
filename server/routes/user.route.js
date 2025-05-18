@@ -25,6 +25,11 @@ router.get("/getOpponent/:socketId", authMiddleware.authUser,userController.getO
 
 router.delete("/deleteAccount", authMiddleware.authUser, userController.deleteAccount);
 
-
+router.put("/updateSettings", authMiddleware.authUser, [
+    body('email').optional().isEmail().withMessage('Please enter a valid email'),
+    body('fullname.firstname').optional().isLength({ min: 3 }).withMessage('First name must be at least 3 characters long'),
+    body('fullname.lastname').optional().isLength({ min: 3 }).withMessage('Last name must be at least 3 characters long'),
+    body('password').optional().isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
+], userController.updateSettings);
 
 module.exports = router;

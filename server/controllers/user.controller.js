@@ -77,3 +77,51 @@ module.exports.deleteAccount = async (req, res, next) => {
     res.clearCookie('token');
     res.status(200).json({ message: "Account deleted successfully" });
 };
+
+
+module.exports.updateSettings = async (req, res, next) => {
+    const { validationResult } = require('express-validator');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+        const userId = req.user._id;
+        // Destructure currentPassword and newPassword from request body.
+        // All other fields (like email or fullname) are kept in otherUpdates.
+        const { currentPassword, newPassword, ...otherUpdates } = req.body;
+
+        // If a new password is provided, verify that the current password exists.
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({ message: "Current password is required to set a new password." });
+            }
+            // Retrieve the user including the password field.
+            const user = await require('../models/user.model').findById(userId).select('+password');
+            const isMatch = await user.comparePassword(currentPassword);
+            if (!isMatch) {
+                return res.status(401).json({ message: "Current password is incorrect." });
+            }
+            // Hash the new password and add it to the update payload.
+            otherUpdates.password = await user.comparePassword 
+                ? await require('../models/user.model').hashPassword(newPassword) 
+                : newPassword;
+        }
+
+        // Optionally update the email or fullname if provided.
+        if (req.body.email) {
+            otherUpdates.email = req.body.email;
+        }
+        if (req.body.fullname) {
+            otherUpdates.fullname = req.body.fullname;
+        }
+
+        const updatedUser = await require('../services/user.service').updateUserSettings(userId, otherUpdates);
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "Settings updated successfully", user: updatedUser });
+    } catch (error) {
+        next(error);
+    }
+};
