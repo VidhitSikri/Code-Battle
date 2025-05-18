@@ -65,3 +65,15 @@ module.exports.getOpponent = async (req, res, next) => {
     }
     res.status(200).json({ opponent });
 }
+
+
+module.exports.deleteAccount = async (req, res, next) => {
+    const userId = req.user._id;
+    const deletedUser = await userService.deleteUser(userId);
+    if (!deletedUser) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    // Clear the token cookie after deleting the account
+    res.clearCookie('token');
+    res.status(200).json({ message: "Account deleted successfully" });
+};

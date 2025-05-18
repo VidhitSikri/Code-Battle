@@ -23,5 +23,8 @@ router.get("/logout", authMiddleware.authUser,userController.logoutUser);
 router.get("/getOpponent/:socketId", authMiddleware.authUser,userController.getOpponent);
 
 
+router.delete("/deleteAccount", authMiddleware.authUser, userController.deleteAccount);
+
+
 
 module.exports = router;

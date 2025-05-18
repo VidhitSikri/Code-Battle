@@ -25,3 +25,11 @@ module.exports.getOpponent = async (socketId) => {
     }
     return user;
 }
+
+module.exports.deleteUser = async (userId) => {
+    const deletedUser = await userModel.findByIdAndDelete(userId);
+    if (!deletedUser) {
+        throw new Error("User not found");
+    }
+    return deletedUser;
+}
