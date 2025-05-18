@@ -7,6 +7,7 @@ import "./index.css";
 import CreateRoom from "./CreateRoom.jsx";
 import UserProtectedWrapper from "./UserProtectedWrapper.jsx";
 import JoinMatch from "./JoinMatch.jsx";
+import ProfilePage from "./ProfilePage.jsx";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/create-room" element={<UserProtectedWrapper><CreateRoom /></UserProtectedWrapper>} />
           <Route path="/join-room" element={<UserProtectedWrapper><JoinMatch /></UserProtectedWrapper>} />
           <Route path="/rooms/:roomcode" element={<UserProtectedWrapper><BattleArena /></UserProtectedWrapper>} />
+          <Route path="/profile" element={<UserProtectedWrapper><ProfilePage /></UserProtectedWrapper>} />
         </Routes>
       </div>
     </Router>
