@@ -65,8 +65,12 @@ const BattleArena = () => {
   // Set isCreator based on battle data and current user
   useEffect(() => {
     if (battle && user) {
-      // battle.createdBy may be an objectId; compare as strings
-      setIsCreator(battle.createdBy.toString() === user._id.toString());
+      // If createdBy is populated, use its _id property; otherwise, assume it's an ID string.
+      const creatorId =
+        typeof battle.createdBy === "object" && battle.createdBy._id
+          ? battle.createdBy._id
+          : battle.createdBy;
+      setIsCreator(creatorId.toString() === user._id.toString());
     }
   }, [battle, user]);
 
@@ -168,6 +172,7 @@ const BattleArena = () => {
     // Add further logic to actually start the battle here
     console.log("Battle Started!");
     setShowBattleModal(false);
+    navigate(`/start-battle/${roomcode}`);
   };
 
   // New leave room functionality
