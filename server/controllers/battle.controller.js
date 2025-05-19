@@ -49,7 +49,7 @@ module.exports.createBattle = async (req, res, next) => {
 
 module.exports.getAllBattles = async (req, res, next) => {
   try {
-    const battles = await battleModel.find({});
+    const battles = await battleModel.find({}).populate('createdBy', 'fullname');
     res.status(200).json({ battles });
   } catch (error) {
     next(error);

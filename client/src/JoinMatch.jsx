@@ -228,11 +228,15 @@ const JoinRoom = () => {
                       <p className="mt-2 text-gray-400 text-sm line-clamp-2">
                         {room.description}
                       </p>
+                      {/* Updated "Created by" section */}
                       <div className="mt-4 flex justify-between items-center">
                         <div className="flex items-center text-sm text-gray-400">
                           <span>Created by </span>
                           <span className="ml-1 font-medium text-blue-400">
-                            {room.creator}
+                            {room.creatorName ||
+                              (room.createdBy && room.createdBy.fullname
+                                ? `${room.createdBy.fullname.firstname} ${room.createdBy.fullname.lastname}`
+                                : "Unknown")}
                           </span>
                         </div>
                         <button
