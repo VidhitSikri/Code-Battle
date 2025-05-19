@@ -54,6 +54,14 @@ function initializeSocket(server) {
             console.log(`Socket ${socket.id} joined room: ${roomId}`);
         });
 
+        socket.on('startBattle', (data) => {
+            const { roomCode, opponentSocketId } = data;
+            console.log(`Battle ${roomCode} starting: instructing opponent ${opponentSocketId}`);
+            if (io) {
+                io.to(opponentSocketId).emit('redirectToBattle', { roomCode });
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log(`Client disconnected: ${socket.id}`);
         });

@@ -16,12 +16,14 @@ import {
   PlayCircle,
   Loader,
 } from "lucide-react";
-import { UserDataContext } from "./context/UserContext"; // adjust path accordingly
+import { UserDataContext } from "./context/UserContext";
+import { SocketContext } from "./context/SocketContext"; // ensure you import your SocketContext
 
 const BattleArena = () => {
   const { roomcode } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(UserDataContext);
+  const { socket, sendMessage } = useContext(SocketContext); // assuming socket is exposed here
 
   const [battle, setBattle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -169,11 +171,27 @@ const BattleArena = () => {
   };
 
   const confirmStartBattle = () => {
-    // Add further logic to actually start the battle here
+    // Emit an event to start the battle for the opponent as well
+    socket.emit("startBattle", {
+      roomCode: roomcode,
+      opponentSocketId: battle.user2SocketId,
+    });
     console.log("Battle Started!");
     setShowBattleModal(false);
     navigate(`/start-battle/${roomcode}`);
   };
+
+  // Listen for the redirect event on the opponent client side
+  useEffect(() => {
+    if (socket) {
+      socket.on("redirectToBattle", ({ roomCode }) => {
+        navigate(`/start-battle/${roomCode}`);
+      });
+    }
+    return () => {
+      if (socket) socket.off("redirectToBattle");
+    };
+  }, [socket, navigate]);
 
   // New leave room functionality
   const handleLeaveRoom = async () => {
