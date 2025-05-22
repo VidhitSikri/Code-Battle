@@ -13,6 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { UserDataContext } from "./context/UserContext";
+import Editor from "@monaco-editor/react"; // <-- added import
 
 const StartBattle = () => {
   const { roomcode } = useParams();
@@ -395,13 +396,16 @@ You can return the answer in any order.`,
               </div>
             </div>
             <div className="flex-1 relative">
-              <textarea
+              <Editor
+                height="100%"
+                language={selectedLanguage}
+                theme="vs-dark"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder={`// Write your ${selectedLanguage} solution here`}
-                className="w-full h-full bg-gray-900 text-gray-200 font-mono p-4 resize-none focus:outline-none"
-                spellCheck="false"
-                disabled={!currentQuestion}
+                onChange={(value) => setCode(value || "")}
+                options={{
+                  minimap: { enabled: false },
+                  readOnly: !currentQuestion,
+                }}
               />
               {!currentQuestion && (
                 <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center">
