@@ -13,7 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { UserDataContext } from "./context/UserContext";
-import Editor from "@monaco-editor/react"; // <-- added import
+import Editor from "@monaco-editor/react";
 
 const StartBattle = () => {
   const { roomcode } = useParams();
@@ -27,7 +27,11 @@ const StartBattle = () => {
   const [code, setCode] = useState("");
   const [scores, setScores] = useState({ you: 0, opponent: 0 });
   const [opponentTyping, setOpponentTyping] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  // New state: allowedLanguages from the battle document
+  const [allowedLanguages, setAllowedLanguages] = useState([]);
+  // Default selected language will be set once battle is fetched
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+
   const [opponentName, setOpponentName] = useState("Waiting...");
 
   // Fetch battle based on roomcode from URL
@@ -47,6 +51,14 @@ const StartBattle = () => {
           const foundBattle = battles.find((b) => b.roomCode === roomcode);
           setBattle(foundBattle);
           if (foundBattle && user) {
+            // Set allowedLanguages from battle allowedLanguages array.
+            if (
+              foundBattle.allowedLanguages &&
+              foundBattle.allowedLanguages.length > 0
+            ) {
+              setAllowedLanguages(foundBattle.allowedLanguages);
+              setSelectedLanguage(foundBattle.allowedLanguages[0]);
+            }
             // Determine if current user is creator based on createdBy field:
             const creatorId =
               typeof foundBattle.createdBy === "object"
@@ -377,15 +389,17 @@ You can return the answer in any order.`,
                 <span className="font-medium">Solution</span>
               </div>
               <div className="flex items-center">
+                {/* Allowed languages from the battle */}
                 <select
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                   className="bg-gray-900 border border-gray-700 rounded-md text-sm px-2 py-1 mr-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="java">Java</option>
-                  <option value="cpp">C++</option>
+                  {allowedLanguages.map((lang) => (
+                    <option key={lang} value={lang}>
+                      {lang}
+                    </option>
+                  ))}
                 </select>
                 {opponentTyping && (
                   <div className="text-xs text-gray-400 flex items-center mr-2">
