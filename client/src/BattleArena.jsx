@@ -170,15 +170,31 @@ const BattleArena = () => {
     }
   };
 
-  const confirmStartBattle = () => {
-    // Emit an event to start the battle for the opponent as well
-    socket.emit("startBattle", {
-      roomCode: roomcode,
-      opponentSocketId: battle.user2SocketId,
-    });
-    console.log("Battle Started!");
-    setShowBattleModal(false);
-    navigate(`/start-battle/${roomcode}`);
+  const confirmStartBattle = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      // Call the new API endpoint to start the battle
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/battle/start/${battle._id}`,
+        {},
+        {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.status === 200) {
+        // Emit socket event to notify the opponent
+        socket.emit("startBattle", {
+          roomCode: roomcode,
+          opponentSocketId: battle.user2SocketId,
+        });
+        console.log("Battle Started!");
+        setShowBattleModal(false);
+        navigate(`/start-battle/${roomcode}`);
+      }
+    } catch (error) {
+      console.error("Error starting battle:", error);
+    }
   };
 
   // Listen for the redirect event on the opponent client side

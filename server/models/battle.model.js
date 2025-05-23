@@ -62,16 +62,10 @@ const battleSchema = mongoose.Schema({
         default: 0
     },
 
-    questions: [
-        {
-            questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'question' },
-            status: {
-                type: String,
-                enum: ['not-started', 'in-progress', 'completed'],
-                default: 'not-started'
-            }
-        }
-    ],
+    questions: {
+        type: [Object],
+        default: []
+    },
 
     winner: {
         type: mongoose.Schema.Types.ObjectId,

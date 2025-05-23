@@ -88,3 +88,44 @@ module.exports.leaveBattle = async (req, res, next) => {
     next(error);
   }
 };
+
+module.exports.startBattle = async (req, res, next) => {
+  try {
+    const battleId = req.params.id;
+    const battle = await battleModel.findById(battleId);
+    if (!battle) {
+      return res.status(404).json({ message: "Battle not found" });
+    }
+    
+    // Import questions from the JSON file
+    const questionsData = require('../QuestionData.json');
+    
+    // Filter questions by battle difficulty
+    const filteredQuestions = questionsData.filter(
+      (q) => q.difficulty.toLowerCase() === battle.difficulty.toLowerCase()
+    );
+
+    if (filteredQuestions.length < battle.questionsNumber) {
+      return res.status(400).json({ message: "Not enough questions for the selected difficulty." });
+    }
+    
+    // Select random questions without repetition
+    const selectedQuestions = [];
+    while (selectedQuestions.length < battle.questionsNumber) {
+      const idx = Math.floor(Math.random() * filteredQuestions.length);
+      // Check to avoid duplicates
+      if (!selectedQuestions.includes(filteredQuestions[idx])) {
+        selectedQuestions.push(filteredQuestions[idx]);
+      }
+    }
+    
+    // Update battle fields
+    battle.questions = selectedQuestions;
+    battle.status = 'in-progress';
+    await battle.save();
+    res.status(200).json({ battle, message: "Battle started successfully." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred while starting the battle." });
+  }
+};

@@ -11,15 +11,16 @@ router.post('/create', [
     body('questionsNumber').isNumeric().withMessage('Questions number must be a number'),
     body('isPrivate').isBoolean().withMessage('Is private must be a boolean'),
     body('isSameLanguage').isBoolean().withMessage('Is same language must be a boolean'),
-    
-],authMiddleware.authUser, battleController.createBattle);
+], authMiddleware.authUser, battleController.createBattle);
 
 
 router.get('/all', authMiddleware.authUser, battleController.getAllBattles);
 
 router.delete('/:id', authMiddleware.authUser, battleController.deleteBattle);
 
-
 router.patch('/leave/:id', authMiddleware.authUser, battleController.leaveBattle);
+
+// New endpoint to start the battle
+router.post('/start/:id', authMiddleware.authUser, battleController.startBattle);
 
 module.exports = router;
