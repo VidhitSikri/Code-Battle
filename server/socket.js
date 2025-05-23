@@ -24,33 +24,44 @@ function initializeSocket(server) {
             }
         });
 
-        // Let the client join a battle room.
-        socket.on("joinBattleRoom", (roomCode) => {
-            socket.join(roomCode);
-            console.log(`Socket ${socket.id} joined room: ${roomCode}`);
-        });
+                // Listen for "battleRoom" event to update battle model socket fields
+        socket.on('battleRoom', async (roomId) => {
+            try {
+                const battle = await battleModel.findOne({ roomCode: roomId });
+                if (battle) {
+                    if(!battle.user1SocketId) {
+                        battle.user1SocketId = socket.id;
+                        await battle.save();
+                        console.log(`Assigned user1SocketId for room ${roomId}: ${socket.id}`);
+                    } else if (!battle.user2SocketId) {
+                        battle.user2SocketId = socket.id;
+                        await battle.save();
+                        console.log(`Assigned user2SocketId for room ${roomId}: ${socket.id}`);
+                    } else {
+                        console.log(`Both user socket IDs already assigned for room ${roomId}`);
+                    }
+                } else {
+                    console.log(`Battle not found for room ID: ${roomId}`);
+                }
+            } catch (error) {
+                console.error('Error updating battle socket IDs:', error);
 
-        // When a new question is emitted by the creator, broadcast it to others in the room.
-        socket.on("newQuestion", (data) => {
-            if (data.roomCode && data.question) {
-                // Send to everyone except the sender.
-                socket.to(data.roomCode).emit("newQuestion", { question: data.question });
-                console.log(`Emitted newQuestion to room ${data.roomCode} from socket ${socket.id}`);
             }
         });
 
-        // When a score update happens, broadcast it.
-        socket.on("scoreUpdate", (data) => {
-            if (data.roomCode && data.scores) {
-                socket.to(data.roomCode).emit("scoreUpdate", { scores: data.scores });
-                console.log(`Emitted scoreUpdate to room ${data.roomCode} from socket ${socket.id}`);
-            }
+         // Optional: Automatically join the socket to a room—with roomId if needed
+        socket.join('battleRoom', (roomId) => {
+            socket.join(roomId);
+            console.log(`Socket ${socket.id} joined room: ${roomId}`);
+
         });
 
-        socket.on("startBattle", (data) => {
-            if (data.roomCode) {
-                socket.to(data.roomCode).emit("startBattle", { roomCode: data.roomCode });
-                console.log(`Emitted startBattle to room ${data.roomCode}`);
+                socket.on('startBattle', (data) => {
+            const { roomCode, opponentSocketId } = data;
+            console.log(`Battle ${roomCode} starting: instructing opponent ${opponentSocketId}`);
+            if (io) {
+                io.to(opponentSocketId).emit('redirectToBattle', { roomCode });
+
             }
         });
 
