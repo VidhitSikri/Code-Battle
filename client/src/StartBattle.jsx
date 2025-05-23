@@ -15,6 +15,16 @@ import {
 import { UserDataContext } from "./context/UserContext";
 import Editor from "@monaco-editor/react";
 
+const allLanguages = [
+  "javascript",
+  "python",
+  "cpp",
+  "java",
+  "csharp",
+  "ruby",
+  "go",
+]; // full list
+
 const StartBattle = () => {
   const { roomcode } = useParams();
   const { user } = useContext(UserDataContext);
@@ -51,13 +61,18 @@ const StartBattle = () => {
           const foundBattle = battles.find((b) => b.roomCode === roomcode);
           setBattle(foundBattle);
           if (foundBattle && user) {
-            // Set allowedLanguages from battle allowedLanguages array.
-            if (
-              foundBattle.allowedLanguages &&
-              foundBattle.allowedLanguages.length > 0
-            ) {
-              setAllowedLanguages(foundBattle.allowedLanguages);
-              setSelectedLanguage(foundBattle.allowedLanguages[0]);
+            if (foundBattle.isSameLanguage) {
+              if (
+                foundBattle.allowedLanguages &&
+                foundBattle.allowedLanguages.length > 0
+              ) {
+                setAllowedLanguages(foundBattle.allowedLanguages);
+                setSelectedLanguage(foundBattle.allowedLanguages[0]);
+              }
+            } else {
+              // When same language is off, allow all languages
+              setAllowedLanguages(allLanguages);
+              setSelectedLanguage(allLanguages[0]);
             }
             // Determine if current user is creator based on createdBy field:
             const creatorId =
@@ -167,6 +182,16 @@ You can return the answer in any order.`,
       you: prev.you + 1,
     }));
   };
+
+  const [editorInstance, setEditorInstance] = useState(null);
+
+  // When selectedLanguage changes, update the model language.
+  useEffect(() => {
+    if (editorInstance) {
+      const { editor, monaco } = editorInstance;
+      monaco.editor.setModelLanguage(editor.getModel(), selectedLanguage);
+    }
+  }, [selectedLanguage, editorInstance]);
 
   if (loading) {
     return (
@@ -412,10 +437,13 @@ You can return the answer in any order.`,
             <div className="flex-1 relative">
               <Editor
                 height="100%"
-                language={selectedLanguage}
+                language={selectedLanguage} // initial language setting
                 theme="vs-dark"
                 value={code}
                 onChange={(value) => setCode(value || "")}
+                onMount={(editor, monaco) => {
+                  setEditorInstance({ editor, monaco });
+                }}
                 options={{
                   minimap: { enabled: false },
                   readOnly: !currentQuestion,
