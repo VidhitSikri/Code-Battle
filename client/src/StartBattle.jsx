@@ -282,12 +282,12 @@ const StartBattle = () => {
     }
   };
 
-  // Define display names so that the creator always appears on the left.
-  const creatorDisplayName = battle?.createdBy?.fullname
+  // Define display names so the logged in user sees "You" on their side.
+  const creatorDisplayName = isCreator
+    ? "You"
+    : battle?.createdBy?.fullname
     ? `${battle.createdBy.fullname.firstname} ${battle.createdBy.fullname.lastname}`
     : "Creator";
-  // For the challenger, if the logged-in user is the creator then opponentName is used;
-  // otherwise, "You" represents the challenger.
   const challengerDisplayName = isCreator ? opponentName : "You";
 
   if (loading) {
