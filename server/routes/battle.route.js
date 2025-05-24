@@ -23,4 +23,7 @@ router.patch('/leave/:id', authMiddleware.authUser, battleController.leaveBattle
 // New endpoint to start the battle
 router.post('/start/:id', authMiddleware.authUser, battleController.startBattle);
 
+// New endpoint to complete the battle
+router.patch('/complete/:id', authMiddleware.authUser, battleController.completeBattle);
+
 module.exports = router;

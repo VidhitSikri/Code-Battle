@@ -129,3 +129,34 @@ module.exports.startBattle = async (req, res, next) => {
     res.status(500).json({ message: "An error occurred while starting the battle." });
   }
 };
+
+module.exports.completeBattle = async (req, res, next) => {
+  try {
+    const battleId = req.params.id;
+    const { scores } = req.body; // scores: { creator: number, challenger: number }
+    const battle = await battleModel.findById(battleId);
+    if (!battle) {
+      return res.status(404).json({ message: "Battle not found" });
+    }
+    let winner;
+    if (scores.creator > scores.challenger) {
+      winner = battle.createdBy;
+    } else if (scores.creator < scores.challenger) {
+      winner = battle.challenger;
+    } else {
+      winner = null; // tie scenario
+    }
+    battle.status = 'completed';
+    battle.winner = winner;
+    await battle.save();
+
+    // Populate user details for createdBy and challenger fields before responding.
+    const populatedBattle = await battleModel.findById(battleId)
+      .populate('createdBy', 'fullname')
+      .populate('challenger', 'fullname');
+
+    return res.status(200).json({ battle: populatedBattle, message: "Battle completed successfully." });
+  } catch (error) {
+    next(error);
+  }
+};

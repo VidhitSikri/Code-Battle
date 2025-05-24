@@ -29,7 +29,7 @@ function initializeSocket(server) {
             try {
                 const battle = await battleModel.findOne({ roomCode: roomId });
                 if (battle) {
-                    socket.join(roomId); // 👈 Essential to allow emits to the room
+                    socket.join(roomId);
                     console.log(`Socket ${socket.id} joined room ${roomId}`);
 
                     if (!battle.user1SocketId) {
@@ -38,10 +38,10 @@ function initializeSocket(server) {
                         console.log(`Assigned user1SocketId for room ${roomId}: ${socket.id}`);
                     } else if (!battle.user2SocketId) {
                         battle.user2SocketId = socket.id;
+                        // NEW: assign challenger id.
+                        battle.challenger = socket.userId;
                         await battle.save();
                         console.log(`Assigned user2SocketId for room ${roomId}: ${socket.id}`);
-
-                        // Notify the first user that opponent joined
                         const opponentUser = await userModel.findById(socket.userId);
                         io.to(battle.user1SocketId).emit("opponentJoined", { opponent: opponentUser });
                     } else {
@@ -76,6 +76,11 @@ function initializeSocket(server) {
             if (io) {
                 io.to(opponentSocketId).emit("redirectToBattle", { roomCode });
             }
+        });
+
+        socket.on("battleCompleted", (data) => {
+            // Broadcast to all sockets in the room (including the sender)
+            io.in(data.roomCode).emit("battleCompleted", data);
         });
 
         socket.on("disconnect", () => {

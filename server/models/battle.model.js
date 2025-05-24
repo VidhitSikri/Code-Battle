@@ -14,6 +14,10 @@ const battleSchema = mongoose.Schema({
         ref: 'user',
         required: true
     },
+    challenger: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    },
     isPrivate: {
         type: Boolean,
         default: false

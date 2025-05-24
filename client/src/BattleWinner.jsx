@@ -1,57 +1,114 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Trophy, Crown, Code2, Clock, Shield, Zap, Hash, Star, Home, RotateCcw, Share2, Frown } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  Trophy,
+  Crown,
+  Code2,
+  Clock,
+  Shield,
+  Zap,
+  Hash,
+  Star,
+  Home,
+  RotateCcw,
+  Share2,
+  Frown,
+} from "lucide-react";
 
-const BattleWinner = ({
-  winner = "CodeNinja",
-  loser = "AlgoMaster",
-  finalScore = { winner: 5, loser: 3 },
-  battleDetails = {
-    title: "Algorithm Showdown",
-    questions: 8,
-    mode: "speed", // "speed" or "quality"
-    difficulty: "medium", // "easy", "medium", "hard"
-    duration: "15:32",
-  },
-  isWinner = true, // Whether the current user is the winner
-}) => {
-  const [showConfetti, setShowConfetti] = useState(isWinner) // Only show confetti for winners
-  const [animationPhase, setAnimationPhase] = useState("entering")
+const BattleWinner = () => {
+  const location = useLocation();
+  // Extract real data passed from the complete battle redirect
+  const { isWinner, battleDetails, finalScore } = location.state || {
+    isWinner: true,
+    battleDetails: {
+      title: "Battle Title",
+      questions: 0,
+      mode: "quality",
+      difficulty: "medium",
+      duration: "00:00",
+      createdBy: {
+        _id: "0",
+        fullname: { firstname: "Creator", lastname: "User" },
+      },
+      challenger: {
+        _id: "1",
+        fullname: { firstname: "Challenger", lastname: "User" },
+      },
+      winner: null,
+    },
+    finalScore: { winner: 0, loser: 0 },
+  };
+
+  // Determine winner and loser names based on battleDetails
+  const getDisplayNames = () => {
+    if (!battleDetails) return { winnerName: "Winner", loserName: "Loser" };
+    const creatorFullname = battleDetails.createdBy?.fullname;
+    const challengerFullname = battleDetails.challenger?.fullname;
+    const creatorName = creatorFullname
+      ? `${creatorFullname.firstname || "Creator"} ${
+          creatorFullname.lastname || ""
+        }`.trim()
+      : "Creator";
+    const challengerName = challengerFullname
+      ? `${challengerFullname.firstname || "Challenger"} ${
+          challengerFullname.lastname || ""
+        }`.trim()
+      : "Challenger";
+
+    if (battleDetails.createdBy && battleDetails.challenger) {
+      if (
+        battleDetails.winner &&
+        battleDetails.createdBy._id?.toString() ===
+          battleDetails.winner?.toString()
+      ) {
+        return { winnerName: creatorName, loserName: challengerName };
+      } else {
+        return { winnerName: challengerName, loserName: creatorName };
+      }
+    }
+    return { winnerName: "Winner", loserName: "Loser" };
+  };
+
+  const { winnerName, loserName } = getDisplayNames();
+
+  const [showConfetti, setShowConfetti] = useState(isWinner); // Only show confetti for winners
+  const [animationPhase, setAnimationPhase] = useState("entering");
 
   useEffect(() => {
     // Animation sequence
-    const timer1 = setTimeout(() => setAnimationPhase("celebrating"), 500)
-    const timer2 = setTimeout(() => setShowConfetti(false), 8000)
+    const timer1 = setTimeout(() => setAnimationPhase("celebrating"), 500);
+    const timer2 = setTimeout(() => setShowConfetti(false), 8000);
 
     return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-    }
-  }, [])
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
 
   // Helper function to get initials
-  const getInitials = (username) => {
-    return username
-      .split(/(?=[A-Z])/)
+  const getInitials = (name) => {
+    return name
+      .split(" ")
       .map((n) => n[0])
       .join("")
-      .toUpperCase()
-  }
+      .toUpperCase();
+  };
 
   // Helper function to get difficulty color
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case "easy":
-        return "bg-green-500/20 text-green-400 border-green-500/30"
+        return "bg-green-500/20 text-green-400 border-green-500/30";
       case "medium":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30"
+        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
       case "hard":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30"
+        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
       default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30"
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
     }
-  }
+  };
 
   // Generate confetti pieces (only if winner)
   const confettiPieces = isWinner
@@ -60,9 +117,16 @@ const BattleWinner = ({
         left: Math.random() * 100,
         delay: Math.random() * 3,
         duration: 3 + Math.random() * 2,
-        color: i % 4 === 0 ? "#3b82f6" : i % 4 === 1 ? "#8b5cf6" : i % 4 === 2 ? "#10b981" : "#f59e0b",
+        color:
+          i % 4 === 0
+            ? "#3b82f6"
+            : i % 4 === 1
+            ? "#8b5cf6"
+            : i % 4 === 2
+            ? "#10b981"
+            : "#f59e0b",
       }))
-    : []
+    : [];
 
   // Generate floating particles
   const floatingParticles = [...Array(20)].map((_, i) => ({
@@ -71,7 +135,7 @@ const BattleWinner = ({
     top: Math.random() * 100,
     delay: Math.random() * 5,
     duration: 3 + Math.random() * 4,
-  }))
+  }));
 
   return (
     <>
@@ -144,7 +208,8 @@ const BattleWinner = ({
             text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
           }
           50% {
-            text-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.6);
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.8),
+              0 0 30px rgba(251, 191, 36, 0.6);
           }
         }
 
@@ -222,7 +287,7 @@ const BattleWinner = ({
           </div>
         )}
 
-        {/* Background Effects - Different for winner/loser */}
+        {/* Background Effects */}
         <div
           className={`absolute inset-0 ${
             isWinner
@@ -236,7 +301,9 @@ const BattleWinner = ({
           {floatingParticles.map((particle) => (
             <div
               key={particle.id}
-              className={`absolute w-1 h-1 rounded-full float opacity-30 ${isWinner ? "bg-blue-400" : "bg-gray-500"}`}
+              className={`absolute w-1 h-1 rounded-full float opacity-30 ${
+                isWinner ? "bg-blue-400" : "bg-gray-500"
+              }`}
               style={{
                 left: `${particle.left}%`,
                 top: `${particle.top}%`,
@@ -250,7 +317,11 @@ const BattleWinner = ({
         <main className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
           <div className="max-w-4xl w-full">
             {/* Main Winner/Loser Announcement */}
-            <div className={`text-center mb-8 ${animationPhase === "entering" ? "slide-up" : "bounce-in"}`}>
+            <div
+              className={`text-center mb-8 ${
+                animationPhase === "entering" ? "slide-up" : "bounce-in"
+              }`}
+            >
               <div className="mb-6">
                 {isWinner ? (
                   <Crown className="h-20 w-20 text-yellow-400 mx-auto pulse-glow" />
@@ -265,7 +336,9 @@ const BattleWinner = ({
                     VICTORY!
                   </span>
                 ) : (
-                  <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">DEFEAT</span>
+                  <span className="bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                    DEFEAT
+                  </span>
                 )}
               </h1>
 
@@ -284,27 +357,32 @@ const BattleWinner = ({
                   <div className="flex-1 text-center">
                     <div className="relative mb-4">
                       <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-r from-yellow-500 to-orange-600 flex items-center justify-center text-3xl md:text-4xl font-bold shadow-lg shadow-yellow-500/30 border-4 border-yellow-500/50 mx-auto winner-glow">
-                        {getInitials(winner)}
+                        {getInitials(winnerName)}
                       </div>
                       <div className="absolute -top-2 -right-2 bg-yellow-500 rounded-full p-2 shadow-lg">
                         <Crown className="h-6 w-6 text-white" />
                       </div>
-                      {/* "YOU" indicator for winner */}
                       {isWinner && (
                         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-bold">
                           YOU
                         </div>
                       )}
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">{winner}</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">
+                      {winnerName}
+                    </h3>
                     <div className="text-yellow-300 font-medium">WINNER</div>
-                    <div className="text-3xl font-bold text-yellow-400 mt-2">{finalScore.winner}</div>
+                    <div className="text-3xl font-bold text-yellow-400 mt-2">
+                      {finalScore.winner}
+                    </div>
                   </div>
 
                   {/* VS */}
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-r from-gray-700 to-gray-800 flex items-center justify-center border-2 border-gray-600">
-                      <span className="text-xl font-bold text-gray-400">VS</span>
+                      <span className="text-xl font-bold text-gray-400">
+                        VS
+                      </span>
                     </div>
                   </div>
 
@@ -312,18 +390,21 @@ const BattleWinner = ({
                   <div className="flex-1 text-center">
                     <div className="relative mb-4">
                       <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-r from-gray-600 to-gray-700 flex items-center justify-center text-3xl md:text-4xl font-bold shadow-lg border-4 border-gray-600/50 mx-auto">
-                        {getInitials(loser)}
+                        {getInitials(loserName)}
                       </div>
-                      {/* "YOU" indicator for loser */}
                       {!isWinner && (
                         <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded-full font-bold">
                           YOU
                         </div>
                       )}
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-gray-400 mb-2">{loser}</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold text-gray-400 mb-2">
+                      {loserName}
+                    </h3>
                     <div className="text-gray-500 font-medium">DEFEATED</div>
-                    <div className="text-3xl font-bold text-gray-400 mt-2">{finalScore.loser}</div>
+                    <div className="text-3xl font-bold text-gray-400 mt-2">
+                      {finalScore.loser}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -342,7 +423,9 @@ const BattleWinner = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 text-center">
                     <Hash className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-white">{battleDetails.questions}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {battleDetails.questions}
+                    </div>
                     <div className="text-sm text-gray-400">Questions</div>
                   </div>
 
@@ -350,13 +433,17 @@ const BattleWinner = ({
                     {battleDetails.mode === "speed" ? (
                       <>
                         <Clock className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-                        <div className="text-lg font-bold text-white">Speed</div>
+                        <div className="text-lg font-bold text-white">
+                          Speed
+                        </div>
                         <div className="text-sm text-gray-400">Based</div>
                       </>
                     ) : (
                       <>
                         <Zap className="h-6 w-6 text-purple-400 mx-auto mb-2" />
-                        <div className="text-lg font-bold text-white">Quality</div>
+                        <div className="text-lg font-bold text-white">
+                          Quality
+                        </div>
                         <div className="text-sm text-gray-400">Based</div>
                       </>
                     )}
@@ -365,22 +452,29 @@ const BattleWinner = ({
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 text-center">
                     <Shield className="h-6 w-6 text-blue-400 mx-auto mb-2" />
                     <div
-                      className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getDifficultyColor(battleDetails.difficulty)}`}
+                      className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getDifficultyColor(
+                        battleDetails.difficulty
+                      )}`}
                     >
-                      {battleDetails.difficulty.charAt(0).toUpperCase() + battleDetails.difficulty.slice(1)}
+                      {battleDetails.difficulty.charAt(0).toUpperCase() +
+                        battleDetails.difficulty.slice(1)}
                     </div>
                     <div className="text-sm text-gray-400 mt-1">Difficulty</div>
                   </div>
 
                   <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 text-center">
                     <Clock className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-                    <div className="text-lg font-bold text-white">{battleDetails.duration}</div>
+                    <div className="text-lg font-bold text-white">
+                      {battleDetails.duration}
+                    </div>
                     <div className="text-sm text-gray-400">Duration</div>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <h4 className="text-lg font-bold text-white mb-2">{battleDetails.title}</h4>
+                  <h4 className="text-lg font-bold text-white mb-2">
+                    {battleDetails.title}
+                  </h4>
                   <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
                     <span>
                       Final Score: {finalScore.winner} - {finalScore.loser}
@@ -421,12 +515,16 @@ const BattleWinner = ({
               {isWinner ? (
                 <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full">
                   <Star className="h-5 w-5 text-yellow-400 mr-2" />
-                  <span className="text-yellow-400 font-medium">+50 XP Earned</span>
+                  <span className="text-yellow-400 font-medium">
+                    +50 XP Earned
+                  </span>
                 </div>
               ) : (
                 <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-full">
                   <Trophy className="h-5 w-5 text-blue-400 mr-2" />
-                  <span className="text-blue-400 font-medium">Keep practicing to improve!</span>
+                  <span className="text-blue-400 font-medium">
+                    Keep practicing to improve!
+                  </span>
                 </div>
               )}
             </div>
@@ -434,7 +532,7 @@ const BattleWinner = ({
         </main>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default BattleWinner
+export default BattleWinner;

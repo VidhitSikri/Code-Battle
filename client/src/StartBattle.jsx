@@ -177,12 +177,23 @@ const StartBattle = () => {
       }
       setTimeout(() => setToastMessage(""), 2000);
     });
+    socket.on("battleCompleted", (data) => {
+      // data contains isWinner, battleDetails, finalScore
+      navigate(`/battle-winner/${battle.roomCode}`, {
+        state: {
+          isWinner: data.isWinner,
+          battleDetails: data.battleDetails,
+          finalScore: data.finalScore,
+        },
+      });
+    });
     return () => {
       socket.off("newQuestion");
       socket.off("scoreUpdate");
       socket.off("pointAwarded");
+      socket.off("battleCompleted");
     };
-  }, [socket, battle, isCreator]);
+  }, [socket, battle, isCreator, navigate]);
 
   // Update editor language on change.
   useEffect(() => {
@@ -239,10 +250,9 @@ const StartBattle = () => {
 • -10^9 <= nums[i] <= 10^9
 • -10^9 <= target <= 10^9
 • Only one valid answer exists.
-        `,
+      `,
       };
       setCurrentQuestion(newQuestion);
-      setQuestionIndex((prev) => prev + 1);
       if (battle.mode === "quality") {
         setTimer(600);
       } else if (battle.mode === "time") {
@@ -270,17 +280,41 @@ const StartBattle = () => {
       roomCode: battle.roomCode,
       scores: updatedScores,
     });
-    // Emit pointAwarded event; let socket handler update UI.
     socket.emit("pointAwarded", {
       roomCode: battle.roomCode,
       winner: isCreator ? "creator" : "challenger",
     });
-    // Check if this was the last question in the battle.
-    if (battle.questions && questionIndex >= battle.questions.length - 1) {
-      // Navigate both players to the winner page.
-      navigate(`/battle-winner/${battle.roomCode}`);
+
+    // When combined score equals total questions, complete the battle.
+    if (
+      updatedScores.creator + updatedScores.challenger ===
+      battle.questions.length
+    ) {
+      const token = localStorage.getItem("token");
+      axios
+        .patch(
+          `${import.meta.env.VITE_BASE_URL}/battle/complete/${battle._id}`,
+          { scores: updatedScores },
+          {
+            withCredentials: true,
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        .then((response) => {
+          const isWinner =
+            response.data.battle.winner?.toString() === user._id.toString();
+          // Emit battleCompleted event to the server.
+          socket.emit("battleCompleted", {
+            roomCode: battle.roomCode,
+            isWinner,
+            battleDetails: battle,
+            finalScore: updatedScores,
+          });
+          // Do not navigate immediately; let the battleCompleted listener do it.
+        })
+        .catch((error) => console.error("Error completing battle:", error));
     } else {
-      // Otherwise, prepare for the next question (e.g. increment question index).
+      // Otherwise, increment question index to move on.
       setQuestionIndex(questionIndex + 1);
     }
   };
