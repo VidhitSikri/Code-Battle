@@ -147,11 +147,13 @@ const StartBattle = () => {
     if (!socket) return;
     socket.on("newQuestion", (data) => {
       setCurrentQuestion(data.question);
-      setHasSubmitted(false); // Reset the submission flag.
-      if (battle && battle.mode === "quality") {
-        setTimer(600);
-      } else if (battle && battle.mode === "time") {
-        setTimer(0);
+      setHasSubmitted(false);
+      if (battle) {
+        if (battle.mode === "quality") {
+          setTimer(600);
+        } else if (battle.mode === "time") {
+          setTimer(0);
+        }
       }
     });
     socket.on("scoreUpdate", (data) => {
@@ -163,6 +165,15 @@ const StartBattle = () => {
         (!isCreator && data.winner === "challenger");
       const msg = wonPoint ? "You won a point" : "Opponent won a point";
       setToastMessage(msg);
+      // Clear out the question so that the creator sees the generate screen and the challenger sees no question.
+      setCurrentQuestion(null);
+      if (battle) {
+        if (battle.mode === "quality") {
+          setTimer(600);
+        } else if (battle.mode === "time") {
+          setTimer(0);
+        }
+      }
       setTimeout(() => setToastMessage(""), 2000);
     });
     return () => {
@@ -258,6 +269,7 @@ const StartBattle = () => {
       roomCode: battle.roomCode,
       scores: updatedScores,
     });
+    // Emit pointAwarded and let the pointAwarded listener handle the UI update.
     socket.emit("pointAwarded", {
       roomCode: battle.roomCode,
       winner: isCreator ? "creator" : "challenger",

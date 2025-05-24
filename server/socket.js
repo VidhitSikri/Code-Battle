@@ -17,7 +17,7 @@ function initializeSocket(server) {
 
         socket.on("join", async (userId) => {
             try {
-                socket.userId = userId; // store userId on the socket
+                socket.userId = userId;
                 await userModel.findByIdAndUpdate(userId, { socketId: socket.id });
                 console.log(`User ${userId} connected with socket ID: ${socket.id}`);
             } catch (error) {
@@ -25,10 +25,13 @@ function initializeSocket(server) {
             }
         });
 
-        socket.on('battleRoom', async (roomId) => {
+        socket.on("battleRoom", async (roomId) => {
             try {
                 const battle = await battleModel.findOne({ roomCode: roomId });
                 if (battle) {
+                    socket.join(roomId); // 👈 Essential to allow emits to the room
+                    console.log(`Socket ${socket.id} joined room ${roomId}`);
+
                     if (!battle.user1SocketId) {
                         battle.user1SocketId = socket.id;
                         await battle.save();
@@ -37,9 +40,9 @@ function initializeSocket(server) {
                         battle.user2SocketId = socket.id;
                         await battle.save();
                         console.log(`Assigned user2SocketId for room ${roomId}: ${socket.id}`);
-                        // Fetch opponent details using the stored userId
+
+                        // Notify the first user that opponent joined
                         const opponentUser = await userModel.findById(socket.userId);
-                        // Emit opponentJoined to the first user using user1SocketId.
                         io.to(battle.user1SocketId).emit("opponentJoined", { opponent: opponentUser });
                     } else {
                         console.log(`Both user socket IDs already assigned for room ${roomId}`);
@@ -48,27 +51,30 @@ function initializeSocket(server) {
                     console.log(`Battle not found for room ID: ${roomId}`);
                 }
             } catch (error) {
-                console.error('Error updating battle socket IDs:', error);
+                console.error("Error updating battle socket IDs:", error);
             }
         });
 
         socket.on("newQuestion", (data) => {
+            console.log(`newQuestion event received:`, data);
             io.to(data.roomCode).emit("newQuestion", data);
         });
 
         socket.on("scoreUpdate", (data) => {
+            console.log(`scoreUpdate event:`, data);
             io.to(data.roomCode).emit("scoreUpdate", data);
         });
 
         socket.on("pointAwarded", (data) => {
-            io.to(data.roomCode).emit("pointAwarded", data);
+            console.log(`Point awarded in room ${data.roomCode}: winner is ${data.winner}`);
+            io.in(data.roomCode).emit("pointAwarded", data);
         });
 
-        socket.on('startBattle', (data) => {
+        socket.on("startBattle", (data) => {
             const { roomCode, opponentSocketId } = data;
             console.log(`Battle ${roomCode} starting: instructing opponent ${opponentSocketId}`);
             if (io) {
-                io.to(opponentSocketId).emit('redirectToBattle', { roomCode });
+                io.to(opponentSocketId).emit("redirectToBattle", { roomCode });
             }
         });
 
@@ -79,7 +85,7 @@ function initializeSocket(server) {
 }
 
 const sendMessageToSocketId = (socketId, messageObject) => {
-    console.log(messageObject);
+    console.log(`Sending message to socket ${socketId}:`, messageObject);
     if (io) {
         io.to(socketId).emit(messageObject.event, messageObject.data);
     } else {
