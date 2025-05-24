@@ -9,6 +9,7 @@ import UserProtectedWrapper from "./UserProtectedWrapper.jsx";
 import JoinMatch from "./JoinMatch.jsx";
 import ProfilePage from "./ProfilePage.jsx";
 import StartBattle from "./StartBattle.jsx";
+import BattleWinner from "./BattleWinner.jsx";
 function App() {
   return (
     <Router>
@@ -22,6 +23,7 @@ function App() {
           <Route path="/rooms/:roomcode" element={<UserProtectedWrapper><BattleArena /></UserProtectedWrapper>} />
           <Route path="/profile" element={<UserProtectedWrapper><ProfilePage /></UserProtectedWrapper>} />
           <Route path="/start-battle/:roomcode" element={<UserProtectedWrapper><StartBattle /></UserProtectedWrapper>} />
+          <Route path="/battle-winner/:roomcode" element={<UserProtectedWrapper><BattleWinner /></UserProtectedWrapper>} />
         </Routes>
       </div>
     </Router>
