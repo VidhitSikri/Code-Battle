@@ -345,7 +345,7 @@ const StartBattle = () => {
               <h2 className="text-lg font-bold">{battle.battleName}</h2>
               <p className="text-sm text-gray-400">{battle.description}</p>
             </div>
-            <div className="p-4 flex justify-between items-center">
+            <div className="p-4 flex justify-center items-center">
               <div className="flex items-center gap-4">
                 {/* Left: Creator always */}
                 <div className="flex flex-col items-center">
