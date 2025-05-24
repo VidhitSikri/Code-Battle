@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Code2,
@@ -27,6 +27,7 @@ const allLanguages = [
 ];
 
 const StartBattle = () => {
+  const navigate = useNavigate();
   const { roomcode } = useParams();
   const { user } = useContext(UserDataContext);
   const { socket } = useContext(SocketContext);
@@ -269,16 +270,18 @@ const StartBattle = () => {
       roomCode: battle.roomCode,
       scores: updatedScores,
     });
-    // Emit pointAwarded and let the pointAwarded listener handle the UI update.
+    // Emit pointAwarded event; let socket handler update UI.
     socket.emit("pointAwarded", {
       roomCode: battle.roomCode,
       winner: isCreator ? "creator" : "challenger",
     });
-    setCurrentQuestion(null);
-    if (battle.mode === "quality") {
-      setTimer(600);
-    } else if (battle.mode === "time") {
-      setTimer(0);
+    // Check if this was the last question in the battle.
+    if (battle.questions && questionIndex >= battle.questions.length - 1) {
+      // Navigate both players to the winner page.
+      navigate(`/battle-winner/${battle.roomCode}`);
+    } else {
+      // Otherwise, prepare for the next question (e.g. increment question index).
+      setQuestionIndex(questionIndex + 1);
     }
   };
 
