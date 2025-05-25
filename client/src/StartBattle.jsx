@@ -303,14 +303,14 @@ const StartBattle = () => {
         .then((response) => {
           const isWinner =
             response.data.battle.winner?.toString() === user._id.toString();
-          // Emit battleCompleted event to the server.
+          // Emit battleCompleted event so that both users are notified.
           socket.emit("battleCompleted", {
             roomCode: battle.roomCode,
             isWinner,
             battleDetails: battle,
             finalScore: updatedScores,
           });
-          // Do not navigate immediately; let the battleCompleted listener do it.
+          // Do not navigate immediately; the socket listener will handle it.
         })
         .catch((error) => console.error("Error completing battle:", error));
     } else {
@@ -318,6 +318,23 @@ const StartBattle = () => {
       setQuestionIndex(questionIndex + 1);
     }
   };
+
+  // Socket listener for battleCompleted (inside a useEffect):
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("battleCompleted", (data) => {
+      navigate(`/battle-winner/${battle.roomCode}`, {
+        state: {
+          isWinner: data.isWinner,
+          battleDetails: data.battleDetails,
+          finalScore: data.finalScore,
+        },
+      });
+    });
+    return () => {
+      socket.off("battleCompleted");
+    };
+  }, [socket, battle, navigate]);
 
   // Define display names so the logged in user sees "You" on their side.
   const creatorDisplayName = isCreator

@@ -138,22 +138,29 @@ module.exports.completeBattle = async (req, res, next) => {
     if (!battle) {
       return res.status(404).json({ message: "Battle not found" });
     }
+    
     let winner;
-    if (scores.creator > scores.challenger) {
-      winner = battle.createdBy;
-    } else if (scores.creator < scores.challenger) {
-      winner = battle.challenger;
+    // If total points equal total questions answered
+    if (scores.creator + scores.challenger === battle.questions.length) {
+      if (scores.creator > scores.challenger) {
+        winner = battle.createdBy;
+      } else if (scores.creator < scores.challenger) {
+        winner = battle.challenger;
+      } else {
+        winner = null; // tie scenario
+      }
     } else {
-      winner = null; // tie scenario
+      winner = null; // if not all questions answered, leave as tie or handle differently
     }
+    
     battle.status = 'completed';
     battle.winner = winner;
     await battle.save();
-
-    // Populate user details for createdBy and challenger fields before responding.
+    
+    // Populate createdBy and challenger (optionally include socketId if stored in user model)
     const populatedBattle = await battleModel.findById(battleId)
-      .populate('createdBy', 'fullname')
-      .populate('challenger', 'fullname');
+      .populate('createdBy', 'fullname socketId')
+      .populate('challenger', 'fullname socketId');
 
     return res.status(200).json({ battle: populatedBattle, message: "Battle completed successfully." });
   } catch (error) {
