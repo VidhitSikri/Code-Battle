@@ -378,11 +378,13 @@ const StartBattle = () => {
           setQuestionIndex(questionIndex + 1);
         }
       } else {
-        // If the solution is not correct
+        // If the solution is not correct, allow re-submission
         alert("Incorrect solution submitted.");
+        setHasSubmitted(false);
       }
     } catch (error) {
       console.error("Error during submission:", error);
+      setHasSubmitted(false);
     }
   };
 
