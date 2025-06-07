@@ -16,6 +16,19 @@ import { UserDataContext } from "./context/UserContext";
 import Editor from "@monaco-editor/react";
 import { SocketContext } from "./context/SocketContext";
 
+// Add language mapping for Judge0 (adjust or expand as needed)
+const languageMapping = {
+  javascript: 63,
+  python: 71,
+  cpp: 54,
+  java: 62,
+  csharp: 51,
+  ruby: 72,
+  go: 60,
+};
+
+const getLanguageId = (lang) => languageMapping[lang] || 63;
+
 const allLanguages = [
   "javascript",
   "python",
@@ -266,56 +279,108 @@ const StartBattle = () => {
     }
   };
 
-  // Submit solution handler (award point only once per question).
-  const handleSubmitCode = () => {
+  // Helper to normalize output for comparison
+  const normalizeOutput = (output) => {
+    if (!output) return "";
+    const trimmed = output.trim();
+    try {
+      // Parse and stringify to remove formatting differences (will output without spaces)
+      return JSON.stringify(JSON.parse(trimmed));
+    } catch (error) {
+      // If not valid JSON, remove all whitespace
+      return trimmed.replace(/\s+/g, "");
+    }
+  };
+
+  // Modified submission handler integrating Judge0 API
+  const handleSubmitCode = async () => {
     if (!currentQuestion || hasSubmitted) return;
     setHasSubmitted(true);
-    const updatedScores = { ...scores };
-    if (isCreator) {
-      updatedScores.creator += 1;
-    } else {
-      updatedScores.challenger += 1;
-    }
-    socket.emit("scoreUpdate", {
-      roomCode: battle.roomCode,
-      scores: updatedScores,
-    });
-    socket.emit("pointAwarded", {
-      roomCode: battle.roomCode,
-      winner: isCreator ? "creator" : "challenger",
-    });
 
-    // When combined score equals total questions, complete the battle.
-    if (
-      updatedScores.creator + updatedScores.challenger ===
-      battle.questions.length
-    ) {
-      const token = localStorage.getItem("token");
-      axios
-        .patch(
-          `${import.meta.env.VITE_BASE_URL}/battle/complete/${battle._id}`,
-          { scores: updatedScores },
-          {
-            withCredentials: true,
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        )
-        .then((response) => {
-          const isWinner =
-            response.data.battle.winner?.toString() === user._id.toString();
-          // Emit battleCompleted event so that both users are notified.
-          socket.emit("battleCompleted", {
-            roomCode: battle.roomCode,
-            isWinner,
-            battleDetails: battle,
-            finalScore: updatedScores,
-          });
-          // Do not navigate immediately; the socket listener will handle it.
-        })
-        .catch((error) => console.error("Error completing battle:", error));
-    } else {
-      // Otherwise, increment question index to move on.
-      setQuestionIndex(questionIndex + 1);
+    try {
+      // Submit the code to Judge0
+      const submissionResponse = await axios.post(
+        `https://${
+          import.meta.env.VITE_JUDGE0_API_HOST
+        }/submissions?base64_encoded=false&wait=true`,
+        {
+          source_code: code,
+          language_id: getLanguageId(selectedLanguage),
+          stdin: currentQuestion["sample input"] || currentQuestion.sampleInput,
+        },
+        {
+          headers: {
+            "x-rapidapi-host": import.meta.env.VITE_JUDGE0_API_HOST,
+            "x-rapidapi-key": import.meta.env.VITE_JUDGE0_API_KEY,
+          },
+        }
+      );
+
+      // Debug logs for raw output from Judge0.
+      console.log("Judge0 Raw stdout:", submissionResponse.data.stdout);
+      console.log("Judge0 Raw stderr:", submissionResponse.data.stderr);
+
+      const judgeOutput = normalizeOutput(submissionResponse.data.stdout);
+      const expectedOutput = normalizeOutput(
+        currentQuestion["sample output"] || currentQuestion.sampleOutput
+      );
+
+      console.log("Normalized Judge0 Output:", judgeOutput);
+      console.log("Normalized Expected Output:", expectedOutput);
+
+      if (judgeOutput === expectedOutput) {
+        // Update the scores if solution is correct
+        const updatedScores = { ...scores };
+        if (isCreator) {
+          updatedScores.creator += 1;
+        } else {
+          updatedScores.challenger += 1;
+        }
+        socket.emit("scoreUpdate", {
+          roomCode: battle.roomCode,
+          scores: updatedScores,
+        });
+        socket.emit("pointAwarded", {
+          roomCode: battle.roomCode,
+          winner: isCreator ? "creator" : "challenger",
+        });
+
+        // If all questions are answered, complete the battle.
+        if (
+          updatedScores.creator + updatedScores.challenger ===
+          battle.questions.length
+        ) {
+          const token = localStorage.getItem("token");
+          axios
+            .patch(
+              `${import.meta.env.VITE_BASE_URL}/battle/complete/${battle._id}`,
+              { scores: updatedScores },
+              {
+                withCredentials: true,
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            )
+            .then((response) => {
+              const isWinner =
+                response.data.battle.winner?.toString() === user._id.toString();
+              socket.emit("battleCompleted", {
+                roomCode: battle.roomCode,
+                isWinner,
+                battleDetails: battle,
+                finalScore: updatedScores,
+              });
+            })
+            .catch((error) => console.error("Error completing battle:", error));
+        } else {
+          // Otherwise, move on to the next question.
+          setQuestionIndex(questionIndex + 1);
+        }
+      } else {
+        // If the solution is not correct
+        alert("Incorrect solution submitted.");
+      }
+    } catch (error) {
+      console.error("Error during submission:", error);
     }
   };
 
