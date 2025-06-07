@@ -291,14 +291,7 @@ const BattleWinner = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-400 mb-2">
                   {oppName}
                 </h3>
-                {isMeWinner && (
-                  <>
-                    <div className="text-gray-500 font-medium">Score</div>
-                    <div className="text-3xl font-bold text-gray-400 mt-2">
-                      {oppScore}
-                    </div>
-                  </>
-                )}
+                {/* Opponent's score has been removed */}
               </div>
             </div>
           </div>
