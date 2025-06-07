@@ -162,6 +162,7 @@ const StartBattle = () => {
     socket.on("newQuestion", (data) => {
       setCurrentQuestion(data.question);
       setHasSubmitted(false);
+      setCode(""); // clear the code editor upon receiving a new question
       if (battle) {
         if (battle.mode === "quality") {
           setTimer(600);
@@ -179,8 +180,9 @@ const StartBattle = () => {
         (!isCreator && data.winner === "challenger");
       const msg = wonPoint ? "You won a point" : "Opponent won a point";
       setToastMessage(msg);
-      // Clear out the question so that the creator sees the generate screen and the challenger sees no question.
+      // Clear the current question and increment the question index
       setCurrentQuestion(null);
+      setQuestionIndex((prev) => prev + 1);
       if (battle) {
         if (battle.mode === "quality") {
           setTimer(600);
