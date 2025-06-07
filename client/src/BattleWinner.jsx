@@ -232,7 +232,11 @@ const BattleWinner = () => {
         </div>
         <main className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
           <div className="max-w-4xl w-full text-center mb-8">
-            <div className={animationPhase === "entering" ? "slide-up" : "bounce-in"}>
+            <div
+              className={
+                animationPhase === "entering" ? "slide-up" : "bounce-in"
+              }
+            >
               <div className="mb-6">
                 {isMeWinner ? (
                   <Crown className="h-20 w-20 text-yellow-400 mx-auto" />
@@ -266,10 +270,7 @@ const BattleWinner = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">
                   {yourName}
                 </h3>
-                <div className="text-yellow-300 font-medium">Your Score</div>
-                <div className="text-3xl font-bold text-yellow-400 mt-2">
-                  {yourScore}
-                </div>
+                {/* Removed "Your Score" label and score integer */}
               </div>
 
               <div className="relative">
@@ -290,17 +291,27 @@ const BattleWinner = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-400 mb-2">
                   {oppName}
                 </h3>
-                <div className="text-gray-500 font-medium">Score</div>
-                <div className="text-3xl font-bold text-gray-400 mt-2">
-                  {oppScore}
-                </div>
+                {isMeWinner && (
+                  <>
+                    <div className="text-gray-500 font-medium">Score</div>
+                    <div className="text-3xl font-bold text-gray-400 mt-2">
+                      {oppScore}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className={`px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium shadow-lg flex items-center justify-center ${isMeWinner ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : "bg-gradient-to-r from-red-600 to-red-700 text-white"}`}>
+            <button
+              className={`px-6 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium shadow-lg flex items-center justify-center ${
+                isMeWinner
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                  : "bg-gradient-to-r from-red-600 to-red-700 text-white"
+              }`}
+            >
               <RotateCcw className="h-5 w-5 mr-2" />
               {isMeWinner ? "Battle Again" : "Try Again"}
             </button>
@@ -308,7 +319,10 @@ const BattleWinner = () => {
               <Share2 className="h-5 w-5 mr-2" />
               Share Result
             </button>
-            <button className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300 border border-gray-700 flex items-center justify-center" onClick={() => navigate("/")}>
+            <button
+              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300 border border-gray-700 flex items-center justify-center"
+              onClick={() => navigate("/")}
+            >
               <Home className="h-5 w-5 mr-2" />
               Home
             </button>
