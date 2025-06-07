@@ -347,6 +347,9 @@ const StartBattle = () => {
           winner: isCreator ? "creator" : "challenger",
         });
 
+        // Removed the extra setQuestionIndex here.
+        // (The socket "pointAwarded" listener will increment questionIndex.)
+
         // If all questions are answered, complete the battle.
         if (
           updatedScores.creator + updatedScores.challenger ===
@@ -373,12 +376,9 @@ const StartBattle = () => {
               });
             })
             .catch((error) => console.error("Error completing battle:", error));
-        } else {
-          // Otherwise, move on to the next question.
-          setQuestionIndex(questionIndex + 1);
         }
       } else {
-        // If the solution is not correct, allow re-submission
+        // If the solution is not correct, allow re-submission.
         alert("Incorrect solution submitted.");
         setHasSubmitted(false);
       }
