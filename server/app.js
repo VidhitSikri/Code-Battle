@@ -10,7 +10,8 @@ app.use(cookieParser());
 
 const cors = require("cors");
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://code-battle-frontend.onrender.com",
+    
     credentials: true
 }));
 
