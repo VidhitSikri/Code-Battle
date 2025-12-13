@@ -9,9 +9,20 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const cors = require("cors");
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://code-battle-frontend.onrender.com"
+];
+
 app.use(cors({
-    origin: "https://code-battle-frontend.onrender.com",
-    
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true
 }));
 
